@@ -1,0 +1,12 @@
+{
+  "name": "Maskatech Labs",
+  "short_name": "Maskatech",
+  "description": "Digital dental laboratory. Custom oral appliances for dental practices.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050608",
+  "theme_color": "#050608",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

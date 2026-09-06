@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://maskatech.com/sitemap.xml
