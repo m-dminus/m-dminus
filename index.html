@@ -46,7 +46,6 @@
     "url": "https://maskatech.com/",
     "email": "cases@maskatech.com",
     "description": "Digital dental laboratory fabricating custom oral appliances for dental practices.",
-    "areaServed": "Chicago",
     "logo": "https://maskatech.com/assets/img/logo.svg"
   }
   </script>
@@ -85,7 +84,7 @@
     </div>
   </header>
 
-  <main id="main">
+  <main id="main" tabindex="-1">
     <!-- ===================================================================
          2. Hero — scan mesh of a dental arch (canvas 2D, static SVG fallback)
          =================================================================== -->
@@ -93,16 +92,7 @@
       <canvas class="hero-canvas" id="hero-canvas" aria-hidden="true"></canvas>
 
       <div class="container hero-grid">
-        <div class="hero-copy">
-          <p class="mono mono--accent hero-eyebrow" data-reveal>Digital dental laboratory · Custom oral appliances</p>
-          <h1 class="hero-title" id="hero-title" data-reveal>Scan in.<br>Appliance<br><span class="accent">out.</span></h1>
-          <p class="hero-lede" data-reveal>Maskatech Labs is a digital dental laboratory. Your practice sends an intraoral scan. We return a precision-fabricated appliance, digitally designed for the individual case.</p>
-          <div class="hero-ctas" data-reveal>
-            <a class="btn btn--primary" href="#contact">Start a case <span class="btn-arrow" aria-hidden="true">→</span></a>
-            <a class="btn btn--ghost" href="#workflow">See the workflow</a>
-          </div>
-        </div>
-
+        <!-- Stage first in the DOM: it is the first thing on screen below 900px, so reading and focus order match; the desktop grid moves the copy into column 1 with `order` -->
         <div class="hero-stage" id="hero-stage">
           <img class="hero-fallback" src="assets/img/arch-mesh.svg" width="600" height="600" alt="Wireframe scan mesh of a dental arch" decoding="async" fetchpriority="high">
           <span class="hud-corner hud-corner--tl" aria-hidden="true"></span>
@@ -111,11 +101,21 @@
           <span class="hud-corner hud-corner--br" aria-hidden="true"></span>
 
           <p class="hud hud--tl" aria-hidden="true"><span class="hud-dot"></span>Mesh // Dental arch</p>
-          <p class="hud hud--tr" aria-hidden="true">θ <b id="hud-yaw">000.0°</b></p>
-          <p class="hud hud--bl" aria-hidden="true">Scan <span class="hud-bar"><i id="hud-scan"></i></span> <b id="hud-pct">62%</b></p>
+          <p class="hud hud--tr" aria-hidden="true">θ <b id="hud-yaw">---.-°</b></p>
+          <p class="hud hud--bl" aria-hidden="true">Scan <span class="hud-bar"><i id="hud-scan"></i></span> <b id="hud-pct">--%</b></p>
           <button class="hud hud--br hud-toggle" id="hud-motion" type="button" aria-pressed="true">
             <span class="hud-dot" aria-hidden="true"></span><span>Motion</span> <span class="hud-state" aria-hidden="true">on</span>
           </button>
+        </div>
+
+        <div class="hero-copy">
+          <p class="mono mono--accent hero-eyebrow" data-reveal>Digital dental laboratory&nbsp;· Custom oral appliances</p>
+          <h1 class="hero-title" id="hero-title" data-reveal>Scan in.<br>Appliance<br><span class="accent">out.</span></h1>
+          <p class="hero-lede" data-reveal>Maskatech Labs is a digital dental laboratory. Your practice sends an intraoral scan. We return a <span class="nowrap">precision-fabricated</span> appliance, digitally designed for the individual case.</p>
+          <div class="hero-ctas" data-reveal>
+            <a class="btn btn--primary" href="#contact">Start a case <span class="btn-arrow" aria-hidden="true">→</span></a>
+            <a class="btn btn--ghost" href="#workflow">See the workflow</a>
+          </div>
         </div>
       </div>
 
@@ -169,7 +169,7 @@
                 </button>
               </h3>
               <div class="wf-body" id="wf-p2">
-                <div><p>The appliance is digitally designed on that scan, for the individual case and its prescription.</p></div>
+                <div><p>The appliance is digitally designed on that scan, for the individual case.</p></div>
               </div>
             </li>
             <li class="wf-item" data-wf-item>
@@ -251,7 +251,7 @@
               </g>
               <path class="stroke-soft" d="M20 120H30M210 120H220M120 20V30M120 210V220"/>
               <text x="40" y="222">Case design</text>
-              <text x="200" y="222" text-anchor="end">Per prescription</text>
+              <text x="200" y="222" text-anchor="end">Individual case</text>
             </svg>
 
             <!-- 03 Fabricate -->
@@ -296,8 +296,8 @@
               <circle class="fill-accent anim-blink" cx="204" cy="92" r="2.5"/>
               <text x="22" y="184">Lab</text>
               <text x="218" y="184" text-anchor="end">Practice</text>
-              <text x="40" y="222">Delivered back</text>
-              <text x="200" y="222" text-anchor="end">Delivery appointment</text>
+              <text x="22" y="222">Delivered back</text>
+              <text x="218" y="222" text-anchor="end">Delivery appointment</text>
             </svg>
           </div>
         </div>
@@ -331,11 +331,11 @@
             </div>
             <dl class="spec">
               <dt class="mono">What it is</dt>
-              <dd>An occlusal guard covering the upper or lower arch, as prescribed.</dd>
+              <dd>An occlusal guard covering the upper or lower arch.</dd>
               <dt class="mono">Who it is for</dt>
-              <dd>Patients whose dentist prescribes an occlusal guard.</dd>
+              <dd>Patients whose dentist recommends an occlusal guard.</dd>
               <dt class="mono">Why digital</dt>
-              <dd>Designed on the patient's own scan, so the fit is engineered to that arch rather than approximated.</dd>
+              <dd>Designed on the patient's own scan, so the fit is engineered to that arch.</dd>
             </dl>
           </article>
 
@@ -343,7 +343,7 @@
             <div class="appliance-head">
               <div>
                 <h3 class="appliance-title">Clear retainer</h3>
-                <p class="mono mono--accent appliance-tag">Per arch, as prescribed</p>
+                <p class="mono mono--accent appliance-tag">Per arch</p>
               </div>
               <svg class="appliance-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
                 <path d="M12 18v18a20 20 0 0 0 40 0V18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -356,7 +356,7 @@
               <dt class="mono">What it is</dt>
               <dd>A clear retainer, digitally designed on the scan.</dd>
               <dt class="mono">Who it is for</dt>
-              <dd>Patients whose dentist prescribes a clear retainer.</dd>
+              <dd>Patients whose dentist recommends a clear retainer.</dd>
               <dt class="mono">Why digital</dt>
               <dd>Designed to the scanned arch, case by case, so the retainer follows the arch as it is.</dd>
             </dl>
@@ -380,7 +380,7 @@
             <p class="mono sec-idx" aria-hidden="true">03 / Precision</p>
             <h2 class="sec-title" id="precision-title">Hand-finished. Digitally exact.</h2>
           </header>
-          <p class="precision-aside">Four rules govern how a case moves through the lab. They do not change from one case to the next.</p>
+          <p class="precision-aside">Four principles behind every case.</p>
         </div>
 
         <div class="rule" aria-hidden="true" data-reveal></div>
@@ -394,11 +394,11 @@
           <li class="principle" data-reveal>
             <span class="principle-idx" aria-hidden="true">02</span>
             <h3 class="principle-title">Case-by-case design</h3>
-            <p>Each appliance is designed for the individual case and its prescription.</p>
+            <p>Each appliance is designed for the individual case.</p>
           </li>
           <li class="principle" data-reveal>
             <span class="principle-idx" aria-hidden="true">03</span>
-            <h3 class="principle-title">Inspected before it ships</h3>
+            <h3 class="principle-title">Inspected before it leaves the lab</h3>
             <p>Every case is inspected before it leaves the lab.</p>
           </li>
           <li class="principle" data-reveal>
@@ -421,7 +421,7 @@
               <header class="sec-head">
                 <p class="mono sec-idx" aria-hidden="true">04 / For practices</p>
                 <h2 class="sec-title" id="practices-title">Sending a case takes three steps.</h2>
-                <p class="sec-lede">Scan the patient, send the case with the prescription, and schedule the delivery appointment. We handle the rest.</p>
+                <p class="sec-lede">Scan the patient, send the case, and schedule the delivery appointment. We handle the rest.</p>
               </header>
               <div class="practices-cta">
                 <a class="btn btn--primary" href="#contact">Start a case <span class="btn-arrow" aria-hidden="true">→</span></a>
@@ -440,7 +440,7 @@
               <li class="step">
                 <span class="step-num" aria-hidden="true">02</span>
                 <div>
-                  <h3>Send the case with the prescription</h3>
+                  <h3>Send the case</h3>
                   <p>Appliance, arch and any notes for the design.</p>
                 </div>
               </li>
@@ -483,7 +483,7 @@
               <dt class="mono">Address</dt>
               <dd data-cfg="sisterPractice.address">1933 W Irving Park Rd, Suite 1, Chicago, IL 60613</dd>
               <dt class="mono">Phone</dt>
-              <dd><a href="tel:+17738572290" data-cfg="sisterPractice.phone" data-cfg-link="sisterPractice.phone">(773)&nbsp;857&#8209;2290</a></dd>
+              <dd><!-- [html-validate-disable-next tel-non-breaking -- written exactly as in site-config.js; wrapping is prevented in CSS] --><a href="tel:+17738572290" data-cfg="sisterPractice.phone" data-cfg-link="sisterPractice.phone">(773) 857-2290</a></dd>
               <dt class="mono">Web</dt>
               <dd><a href="https://www.theteethboutique.com" data-cfg-link="sisterPractice.url" rel="noopener">theteethboutique.com</a></dd>
             </dl>
@@ -535,13 +535,13 @@
             </div>
             <div class="field field--full">
               <label class="mono" for="f-notes">Notes</label>
-              <textarea id="f-notes" name="Notes" rows="5" placeholder="Arch, prescription details, anything the design should account for."></textarea>
+              <textarea id="f-notes" name="Notes" rows="5" placeholder="Arch and anything the design should account for."></textarea>
             </div>
             <div class="form-foot">
               <p class="form-note">Submitting opens your email app with the case details prefilled.</p>
               <button class="btn btn--primary" type="submit">Prepare email <span class="btn-arrow" aria-hidden="true">→</span></button>
             </div>
-            <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+            <p class="form-status" id="form-status" role="status"></p>
           </form>
         </div>
       </div>
@@ -579,7 +579,7 @@
           <h2 class="mono">Contact</h2>
           <ul class="footer-links">
             <li><a href="mailto:cases@maskatech.com" data-cfg="contactEmail" data-cfg-link="contactEmail">cases@maskatech.com</a></li>
-            <li><a href="https://www.theteethboutique.com" data-cfg-link="sisterPractice.url" rel="noopener">Sister practice: <span data-cfg="sisterPractice.name">The Teeth Boutique</span> ↗</a></li>
+            <li><a href="https://www.theteethboutique.com" data-cfg-link="sisterPractice.url" rel="noopener">Sister practice: <span data-cfg="sisterPractice.name">The Teeth Boutique</span> <span aria-hidden="true">↗</span></a></li>
           </ul>
         </div>
       </div>

@@ -16,6 +16,7 @@
     11. Footer
     12. 404 page
     13. Reduced motion
+    14. Motion toggle (html.motion-off)
    ============================================================================= */
 
 /* ---------------------------------------------------------------------------
@@ -31,6 +32,7 @@
   --bg-3: #161a22;
   --line: rgba(255, 255, 255, 0.08);
   --line-2: rgba(255, 255, 255, 0.16);
+  --line-3: rgba(255, 255, 255, 0.40);   /* form-field borders: 3.7:1 on the ground (WCAG 1.4.11) */
   --fg: #eef1f5;
   --fg-2: #aab3bf;
   --fg-3: #7f8996;
@@ -45,7 +47,8 @@
   /* Type */
   --font-display: "Space Grotesk", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
-  --fs-0: 0.6875rem;   /* 11px — HUD labels */
+  --fs-0: 0.75rem;     /* 12px — mono labels (spec terms, form labels, eyebrow, footer) */
+  --fs-hud: 0.6875rem; /* 11px — HUD pills on the stages */
   --fs-1: 0.8125rem;   /* 13px — mono meta */
   --fs-2: 0.9375rem;   /* 15px — small body */
   --fs-3: 1.0625rem;   /* 17px — body */
@@ -86,6 +89,9 @@
   --d-4: 1200ms;
   --ease: cubic-bezier(0.22, 0.61, 0.2, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (max-width: 600px) {
+  :root { --fs-hud: 0.75rem; }             /* 12px HUD toggle / readouts on phones */
 }
 
 /* ---------------------------------------------------------------------------
@@ -164,6 +170,7 @@ button { cursor: pointer; background: none; border: 0; padding: 0; }
   outline-offset: 3px;
   border-radius: var(--r-1);
 }
+main:focus { outline: none; }                /* skip-link target (tabindex=-1) */
 
 ::selection { background: var(--accent); color: var(--ink); }
 
@@ -180,7 +187,9 @@ button { cursor: pointer; background: none; border: 0; padding: 0; }
   transform: translateY(-120%);
   transition: transform var(--d-1) var(--ease);
 }
-.skip-link:focus { transform: translateY(0); outline-offset: -3px; }
+.skip-link:focus { transform: translateY(0); outline-offset: -3px; outline-color: var(--ink); }   /* dark ring on the accent ground */
+
+.nowrap { white-space: nowrap; }
 
 .visually-hidden {
   position: absolute !important;
@@ -258,6 +267,7 @@ button { cursor: pointer; background: none; border: 0; padding: 0; }
   color: var(--ink);
   box-shadow: 0 0 28px 0 var(--accent-glow);
 }
+.btn--ghost { --btn-line: var(--line-3); }   /* 3.7:1 on the ground: the border is the button's only edge (WCAG 1.4.11) */
 .btn--ghost:hover {
   color: var(--accent);
   border-color: var(--accent-line);
@@ -265,13 +275,19 @@ button { cursor: pointer; background: none; border: 0; padding: 0; }
 }
 .btn--sm { min-height: 2.75rem; padding: 0 1rem; font-size: var(--fs-1); }
 
-/* Inline link with hairline underline */
+/* Inline link with hairline underline. Padded hit area (~44px) without changing the layout */
 .link {
+  display: inline-block;
+  padding-block: 0.55rem;
+  margin-block: -0.55rem;                    /* 27.2px line + 17.6px = 44.8px hit area */
   color: var(--accent);
-  border-bottom: 1px solid var(--accent-line);
-  transition: border-color var(--d-1) var(--ease);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--accent-line);
+  text-underline-offset: 0.3em;
+  transition: text-decoration-color var(--d-1) var(--ease);
 }
-.link:hover { border-color: var(--accent); }
+.link:hover { text-decoration-color: var(--accent); }
 
 /* Section skeleton with corner ticks */
 .sec {
@@ -283,6 +299,7 @@ button { cursor: pointer; background: none; border: 0; padding: 0; }
 .sec .container::before,
 .sec .container::after {
   content: "+";
+  content: "+" / "";                        /* alt-text syntax: decorative, not read out (older engines keep the line above) */
   position: absolute;
   top: calc(-1 * var(--section) - 0.55em);
   font-family: var(--font-mono);
@@ -320,6 +337,7 @@ button { cursor: pointer; background: none; border: 0; padding: 0; }
   line-height: 1.5;
   color: var(--fg-2);
   max-width: 40rem;
+  text-wrap: pretty;
 }
 
 /* Scroll reveals — elements are visible by default; JS marks off-screen ones
@@ -458,7 +476,7 @@ html.js [data-reveal-group] > [data-reveal]:nth-child(5) { transition-delay: 360
   height: 2.75rem;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--line-2);
+  border: 1px solid var(--line-3);
   border-radius: var(--r-2);
   color: var(--fg);
 }
@@ -558,12 +576,14 @@ html.js [data-reveal-group] > [data-reveal]:nth-child(5) { transition-delay: 360
   align-items: center;
   gap: clamp(2rem, 4vw, 5rem);
 }
-.hero-copy { display: grid; gap: var(--s-5); max-width: 40rem; }
-.hero-eyebrow { display: inline-flex; align-items: center; gap: var(--s-3); }
+.hero-copy { display: grid; gap: var(--s-5); max-width: 40rem; order: -1; }   /* copy in column 1; the stage precedes it in the DOM */
+.hero-eyebrow { display: inline-flex; align-items: flex-start; gap: var(--s-3); text-wrap: balance; }
 .hero-eyebrow::before {
   content: "";
+  flex: none;
   width: 0.5rem;
   height: 0.5rem;
+  margin-top: calc(0.7em - 0.25rem);          /* centred on the first line (line-height 1.4) even when the text wraps */
   border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 12px var(--accent);
@@ -585,6 +605,7 @@ html.js [data-reveal-group] > [data-reveal]:nth-child(5) { transition-delay: 360
   line-height: 1.5;
   color: var(--fg-2);
   max-width: 34rem;
+  text-wrap: pretty;
 }
 .hero-ctas { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-2); }
 
@@ -650,18 +671,19 @@ html.js [data-reveal-group] > [data-reveal]:nth-child(5) { transition-delay: 360
 /* HUD readouts */
 .hud {
   position: absolute;
+  margin: 0;                                  /* the global p + p rule must not push the top-right pill down */
   display: flex;
   align-items: center;
   gap: var(--s-2);
   padding: 0.5rem 0.75rem;
   font-family: var(--font-mono);
-  font-size: var(--fs-0);
+  font-size: var(--fs-hud);
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--fg-2);
   line-height: 1;
-  background: rgba(5, 6, 8, 0.6);
+  background: rgba(5, 6, 8, 0.85);            /* keeps the toggle text >= 4.5:1 over the brightest canvas lines */
   border: 1px solid var(--line);
   border-radius: var(--r-2);
   z-index: 2;
@@ -670,6 +692,7 @@ html.js [data-reveal-group] > [data-reveal]:nth-child(5) { transition-delay: 360
 .hud--tr { top: 0.75rem; right: 0.75rem; }
 .hud--bl { bottom: 0.75rem; left: 0.75rem; }
 .hud--br { bottom: 0.75rem; right: 0.75rem; }
+.hero-stage .hud--bl { min-height: 2.75rem; }   /* same height as the Motion toggle beside it */
 .hud b { font-weight: 500; color: var(--accent); font-variant-numeric: tabular-nums; min-width: 4.5ch; text-align: right; }
 .hud .hud-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
 .hud-bar {
@@ -683,7 +706,7 @@ html.js [data-reveal-group] > [data-reveal]:nth-child(5) { transition-delay: 360
 .hud-bar i {
   position: absolute;
   inset: 0;
-  width: var(--p, 62%);
+  width: var(--p, 0%);
   background: var(--accent);
   border-radius: 2px;
 }
@@ -725,8 +748,8 @@ html:not(.js) .hud-toggle { display: none; }
 @media (max-width: 900px) {
   .hero { padding-block: var(--s-6) var(--s-7); }
   .hero-grid { grid-template-columns: 1fr; gap: var(--s-6); }
-  .hero-stage { order: -1; aspect-ratio: 4 / 3; max-width: none; }
-  .hero-copy { max-width: none; }
+  .hero-stage { aspect-ratio: 4 / 3; max-width: none; }
+  .hero-copy { order: 0; max-width: none; }   /* DOM order: stage, then copy */
   .hero-specs { grid-template-columns: 1fr; }
   .hero-spec { border-right: 0; border-bottom: 1px solid var(--line); padding-left: 0; padding-right: 0; }
   .hero-spec + .hero-spec { padding-left: 0; }
@@ -792,7 +815,13 @@ html:not(.js) .hud-toggle { display: none; }
   grid-template-rows: 0fr;
   transition: grid-template-rows var(--d-3) var(--ease-out);
 }
-.wf-body > div { overflow: hidden; }
+.wf-body > div {
+  overflow: hidden;
+  visibility: hidden;                         /* collapsed panels are not read out */
+  transition: visibility 0s linear var(--d-3);
+}
+.wf-item.is-active .wf-body > div,
+html:not(.js) .wf-body > div { visibility: visible; transition-delay: 0s; }
 .wf-body p {
   padding: 0 0 1.375rem 3.25rem;
   padding-left: calc(3.25rem + 1rem);
@@ -824,7 +853,9 @@ html:not(.js) .wf-body { grid-template-rows: 1fr; }
   position: sticky;
   top: calc(var(--nav-h) + 2rem);
   aspect-ratio: 1 / 1;
+  width: min(100%, 34rem);
   max-height: 34rem;
+  justify-self: end;                          /* keeps the right edge on the container edge at >= 1440 */
   border: 1px solid var(--line);
   border-radius: var(--r-3);
   background:
@@ -872,13 +903,14 @@ html:not(.js) .wf-body { grid-template-rows: 1fr; }
 
 @media (max-width: 900px) {
   .wf { grid-template-columns: 1fr; }
-  .wf-stage { position: relative; top: auto; order: -1; max-height: none; aspect-ratio: 16 / 10; }
+  .wf-stage { position: relative; top: auto; order: -1; width: auto; justify-self: stretch; max-height: none; aspect-ratio: 16 / 10; }
   .wf-glyph { padding: 6% 20%; }
   .wf-btn { grid-template-columns: 2.5rem 1fr auto; }
   .wf-body p { padding-left: calc(2.5rem + 1rem); }
 }
 @media (max-width: 480px) {
-  .wf-glyph { padding: 4% 12%; }
+  .wf-glyph { padding: 4% 8%; }
+  .wf-glyph text { display: none; }
 }
 
 /* ---------------------------------------------------------------------------
@@ -928,8 +960,10 @@ html:not(.js) .wf-body { grid-template-rows: 1fr; }
   gap: var(--s-3) var(--s-5);
   color: var(--fg-2);
 }
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   .appliances { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
   .spec { grid-template-columns: 6rem 1fr; }
 }
 @media (max-width: 400px) {
@@ -942,7 +976,7 @@ html:not(.js) .wf-body { grid-template-rows: 1fr; }
    --------------------------------------------------------------------------- */
 .precision-head { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--s-6); align-items: end; margin-bottom: var(--s-7); }
 .precision-head .sec-head { margin-bottom: 0; }
-.precision-aside { color: var(--fg-2); max-width: 30rem; justify-self: end; }
+.precision-aside { color: var(--fg-2); max-width: 30rem; justify-self: end; text-wrap: pretty; }
 /* calibration rule */
 .rule {
   position: relative;
@@ -993,7 +1027,7 @@ html:not(.js) .wf-body { grid-template-rows: 1fr; }
   transition: border-color var(--d-2) var(--ease), box-shadow var(--d-2) var(--ease);
 }
 .principle:hover::after { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
-@media (max-width: 1000px) {
+@media (max-width: 1150px) {
   .precision-head { grid-template-columns: 1fr; }
   .precision-aside { justify-self: start; }
   .principles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1083,8 +1117,18 @@ html:not(.js) .wf-body { grid-template-rows: 1fr; }
 .clinic-tagline { color: var(--fg-2); margin-top: var(--s-1); }
 .clinic-spec { grid-template-columns: 6.5rem 1fr; }
 .clinic-spec dd { font-size: var(--fs-2); color: var(--fg); }
-.clinic-spec a { border-bottom: 1px solid var(--line-2); transition: border-color var(--d-1) var(--ease), color var(--d-1) var(--ease); }
-.clinic-spec a:hover { border-color: var(--accent); }
+.clinic-spec a {
+  display: inline-block;
+  padding-block: 0.75rem;                     /* ~44px hit area without changing the layout */
+  margin-block: -0.75rem;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--line-2);
+  text-underline-offset: 0.25em;
+  transition: text-decoration-color var(--d-1) var(--ease), color var(--d-1) var(--ease);
+}
+.clinic-spec a:hover { text-decoration-color: var(--accent); }
+.clinic-spec a[href^="tel:"] { white-space: nowrap; }
 .clinic-mark {
   width: 3rem;
   height: 3rem;
@@ -1098,6 +1142,9 @@ html:not(.js) .wf-body { grid-template-rows: 1fr; }
 .clinic-mark svg { width: 1.25rem; height: 1.25rem; }
 @media (max-width: 900px) {
   .clinic { grid-template-columns: 1fr; }
+}
+@media (max-width: 400px) {
+  .clinic-spec { grid-template-columns: 1fr; gap: var(--s-1) 0; }   /* declared after .clinic-spec so it wins at phone widths */
 }
 
 /* ---------------------------------------------------------------------------
@@ -1142,7 +1189,7 @@ html:not(.js) .wf-body { grid-template-rows: 1fr; }
   min-height: 3rem;
   padding: 0.75rem 0.875rem;
   background: rgba(5, 6, 8, 0.7);
-  border: 1px solid var(--line-2);
+  border: 1px solid var(--line-3);
   border-radius: var(--r-2);
   color: var(--fg);
   font-size: var(--fs-2);
@@ -1151,7 +1198,6 @@ html:not(.js) .wf-body { grid-template-rows: 1fr; }
 .field textarea { min-height: 8rem; resize: vertical; }
 .field input::placeholder, .field textarea::placeholder { color: var(--fg-3); }
 .field input:focus, .field select:focus, .field textarea:focus {
-  outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
@@ -1175,7 +1221,15 @@ html:not(.js) .wf-body { grid-template-rows: 1fr; }
 }
 .form-note { color: var(--fg-3); font-size: var(--fs-1); max-width: 22rem; }
 .form-status { grid-column: 1 / -1; color: var(--accent); font-size: var(--fs-2); min-height: 1.5em; }
-.form-status:empty { display: none; }
+.form-status:empty {                        /* stays in the accessibility tree (role=status) but takes no space */
+  position: absolute;
+  width: 1px; height: 1px;
+  min-height: 0;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
 @media (max-width: 900px) {
   .contact { grid-template-columns: 1fr; }
 }
@@ -1204,7 +1258,7 @@ html:not(.js) .wf-body { grid-template-rows: 1fr; }
 .footer-links { display: grid; gap: 0; }
 .footer-links a {
   display: inline-block;
-  padding-block: 0.55rem;
+  padding-block: 0.7rem;                      /* ~45px tap height */
   line-height: 1.5;
   color: var(--fg-2);
   font-size: var(--fs-2);
@@ -1221,8 +1275,12 @@ html:not(.js) .wf-body { grid-template-rows: 1fr; }
   gap: var(--s-3) var(--s-6);
 }
 .footer-bottom .mono { color: var(--fg-3); }
+.footer-bottom a.mono { display: inline-block; padding-block: 0.9rem; margin-block: -0.9rem; }   /* ~44px hit area */
 .footer-bottom a.mono:hover { color: var(--accent); }
 .footer-bottom .footer-meta { display: flex; flex-wrap: wrap; gap: var(--s-3) var(--s-5); }
+/* 404: the bottom row is the footer's only child */
+.footer--min { padding-block: var(--s-6); }
+.footer--min .footer-bottom { margin-top: 0; padding-top: 0; border-top: 0; }
 @media (max-width: 760px) {
   .footer-grid { grid-template-columns: 1fr 1fr; }
   .footer-brand { grid-column: 1 / -1; }
@@ -1270,4 +1328,22 @@ html:not(.js) .wf-body { grid-template-rows: 1fr; }
   .wf-glyph.is-active .anim-scan { transform: none; opacity: 0.6; }
   .wf-glyph.is-active .anim-loupe { transform: none; }
   .wf-item.is-active.is-timed::after { animation: none; transform: scaleX(1); }
+  .wf-body > div { transition-delay: 0s !important; }
 }
+
+/* ---------------------------------------------------------------------------
+   14. Motion toggle — html.motion-off is set by the hero "Motion" button and
+   stops every CSS animation on the page (the canvas and stepper stop in JS)
+   --------------------------------------------------------------------------- */
+html.motion-off .hero-eyebrow::before,
+html.motion-off .wf-glyph .anim-scan,
+html.motion-off .wf-glyph .anim-draw,
+html.motion-off .wf-glyph .anim-spin,
+html.motion-off .wf-glyph .anim-loupe,
+html.motion-off .wf-glyph .anim-route,
+html.motion-off .wf-glyph .anim-blink,
+html.motion-off .wf-glyph .anim-points circle,
+html.motion-off .wf-item.is-active.is-timed::after { animation: none; }
+html.motion-off .wf-glyph .anim-draw { stroke-dashoffset: 0; }
+html.motion-off .wf-glyph .anim-scan { transform: none; opacity: 0.6; }
+html.motion-off .wf-glyph .anim-loupe { transform: none; }

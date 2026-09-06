@@ -16,10 +16,11 @@ Canonical URL once deployed: **https://maskatech.com**
 | `assets/css/style.css` | All styles (CSS custom properties, no build step) |
 | `assets/js/site-config.js` | **Edit contact details here** (email, city, sister-practice block) |
 | `assets/js/main.js` | Behaviour (progressive enhancement; the site works with JavaScript off) |
-| `assets/fonts/` | Self-hosted web fonts (Open Font License). No third-party font requests. |
-| `assets/img/` | SVG artwork, favicon, Open Graph image |
+| `assets/fonts/` | Self-hosted web fonts. Licence texts: `OFL-space-grotesk.txt`, `OFL-jetbrains-mono.txt`. No third-party font requests. |
+| `assets/img/` | SVG artwork, Open Graph image |
+| `favicon.svg` | Site icon (root, referenced by the pages and the manifest) |
 | `robots.txt`, `sitemap.xml`, `site.webmanifest` | Crawler and PWA metadata |
-| `CONTENT-REVIEW.md` | Every factual statement on the site and where it was verified. **Read this before launch.** |
+| `CONTENT-REVIEW.md` | Every factual statement in the site and in this README, and where it was verified. **Read this before launch.** |
 | `.github/workflows/pages.yml` | Deploys the site to GitHub Pages on every push to `main` |
 
 There is no build step and no framework. Every file is plain HTML, CSS and JavaScript.
@@ -30,26 +31,33 @@ Open `index.html` in a browser, or serve the folder:
 
 ```bash
 python3 -m http.server 8080
-# then visit http://localhost:8080
+# then open the address it shows (port 8080) in a browser
 ```
 
 ## Deploy to GitHub Pages (one-time setup)
 
 1. In this repository open **Settings → Pages** and set **Source** to **GitHub Actions**.
 2. Merge to `main` (or run the "Deploy site to GitHub Pages" workflow manually from the Actions tab).
-3. The site is published at `https://m-dminus.github.io/m-dminus/` until the custom domain below is attached.
+3. Until the custom domain below is attached, the site is served at `https://m-dminus.github.io/m-dminus/`
+   (also shown in **Settings → Pages**). Every asset path in the site is relative, so it works at that sub-path
+   exactly as it will at the root of maskatech.com.
 
 ## Attach the custom domain (maskatech.com)
 
-The domain is registered at GoDaddy and today forwards to theteethboutique.com. To point it at this site:
+The domain is registered at GoDaddy. As of 2026-09-06 it forwards (in a frame) to theteethboutique.com. To point it at this site:
 
 1. **GitHub:** Settings → Pages → *Custom domain* → enter `maskatech.com` → Save. Wait for the DNS check, then tick **Enforce HTTPS** (GitHub says this option can take up to 24 hours to become available).
 2. **GoDaddy → maskatech.com → DNS:**
-   - Remove the existing *Forwarding* rule (it currently frames theteethboutique.com).
+   - Remove the existing *Forwarding* rule (the one that currently frames theteethboutique.com).
    - Add four **A** records for `@` pointing to `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`.
    - Optionally add four **AAAA** records for `@`: `2606:50c0:8000::153`, `2606:50c0:8001::153`, `2606:50c0:8002::153`, `2606:50c0:8003::153`.
    - Add a **CNAME** record for `www` pointing to `m-dminus.github.io`.
 3. **GoDaddy → maskatech.net:** set *Forwarding* to `https://maskatech.com` (permanent 301) so the .net resolves to the same site.
+4. **After the domain is live — switch `404.html` to root-absolute paths in one pass:** `href="/"`, `href="/#contact"`,
+   `href="/favicon.svg"`, `href="/assets/fonts/space-grotesk.css"`, `href="/assets/fonts/jetbrains-mono.css"`,
+   `href="/assets/css/style.css"`. GitHub Pages serves the custom `404.html` for missing URLs, and only root-absolute
+   paths keep it styled for nested misses such as `/a/b/`. The relative paths it currently uses are the correct choice while
+   the site lives under the project sub-path (`/<repo>/`).
 
 Source for the record values: GitHub Docs, "Managing a custom domain for your GitHub Pages site".
 No `CNAME` file is needed in the repository when deploying with GitHub Actions.
@@ -60,12 +68,13 @@ No `CNAME` file is needed in the repository when deploying with GitHub Actions.
    `assets/js/site-config.js` **and** in `index.html`. It is the only contact channel on the site.
 2. **Confirm "Chicago, IL"** as the lab's public location (footer/contact block), or remove it in `site-config.js`.
 
-Everything else on the site was written only from verified facts; see `CONTENT-REVIEW.md`.
+Every factual statement on the site traces to the verified fact sheet; `CONTENT-REVIEW.md` lists each one with its
+source, together with the wording that is generic and that you may want to adjust.
 
-## Domain status (checked against the .com/.net registry on 2026-09-06)
+## Domain status (checked against the .com/.net registry via RDAP on 2026-09-06)
 
 | Domain | Status |
 | --- | --- |
 | maskatech.com | Registered via GoDaddy, Sept 11 2025 → Sept 11 2027. Currently forwards to theteethboutique.com. |
 | maskatech.net | Registered via GoDaddy, Mar 7 2026. |
-| maskatechlabs.com | **Not registered by anyone.** The site never references it. |
+| maskatechlabs.com | **Not registered by anyone** on that date. The site never references it. |

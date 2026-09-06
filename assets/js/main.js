@@ -17,6 +17,8 @@
   const cfg = window.MASKATECH_CONFIG || {};
   const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
   const prefersReduced = () => reduceMQ.matches;
+  // Safari < 14 only has the legacy addListener; a throw here would abort the whole IIFE
+  const onReduceChange = (fn) => (reduceMQ.addEventListener ? reduceMQ.addEventListener('change', fn) : reduceMQ.addListener(fn));
   const $ = (sel, root = doc) => root.querySelector(sel);
   const $$ = (sel, root = doc) => Array.from(root.querySelectorAll(sel));
 
@@ -31,8 +33,7 @@
   $$('[data-cfg]').forEach((el) => {
     const v = getPath(el.dataset.cfg);
     if (typeof v !== 'string' || !v.trim()) return;
-    // phone numbers keep non-breaking spaces/hyphens so they never wrap
-    el.textContent = isPhone(v) ? v.replace(/ /g, '\u00a0').replace(/-/g, '\u2011') : v;
+    el.textContent = v;                                    // written verbatim (tel: links get white-space: nowrap in CSS)
   });
   $$('[data-cfg-link]').forEach((el) => {
     const v = getPath(el.dataset.cfgLink);
@@ -76,7 +77,11 @@
     const spy = new IntersectionObserver((entries) => {
       entries.forEach((en) => {
         if (!en.isIntersecting) return;
-        links.forEach((a) => a.classList.toggle('is-active', a.getAttribute('href') === '#' + en.target.id));
+        links.forEach((a) => {
+          const on = a.getAttribute('href') === '#' + en.target.id;
+          a.classList.toggle('is-active', on);
+          if (on) a.setAttribute('aria-current', 'location'); else a.removeAttribute('aria-current');
+        });
       });
     }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
     sections.forEach((s) => spy.observe(s));
@@ -459,11 +464,15 @@
         if (st) st.textContent = on ? 'on' : 'off';
       }
       if (on) { state.t0 = performance.now() - SCAN_DUR * 0.1; start(); } else { stop(); renderStatic(); }
+      // page-wide: CSS keyframes (glyphs, eyebrow pulse) stop via html.motion-off; the stepper listens for the event
+      doc.documentElement.classList.toggle('motion-off', !on);
+      doc.dispatchEvent(new CustomEvent('maskatech:motion', { detail: { on } }));
     };
 
     // Boot
     layout();
     hero.classList.add('is-live');
+    // The fallback <img> is only faded by CSS; its alt stays the hero's text alternative (the canvas is aria-hidden)
     if (state.running) start(); else renderStatic();
 
     // Resize
@@ -494,7 +503,7 @@
       setRunning(state.running);
       motionBtn.addEventListener('click', () => setRunning(!state.running));
     }
-    reduceMQ.addEventListener('change', () => setRunning(!reduceMQ.matches));
+    onReduceChange(() => setRunning(!reduceMQ.matches));
   }
 
   /* ---------------------------------------------------------------------------
@@ -540,6 +549,8 @@
       });
     });
     wf.addEventListener('pointerenter', () => clearTimeout(timer));
+    wf.addEventListener('focusin', () => { auto = false; clearTimeout(timer); });          // keyboard users: stop for good
+    doc.addEventListener('maskatech:motion', (e) => { if (!e.detail.on) { auto = false; clearTimeout(timer); } });
     wf.addEventListener('pointerleave', schedule);
 
     if ('IntersectionObserver' in window) {
@@ -550,7 +561,7 @@
     } else {
       activate(0, false);
     }
-    reduceMQ.addEventListener('change', () => { auto = !reduceMQ.matches && auto; if (!auto) clearTimeout(timer); });
+    onReduceChange(() => { auto = !reduceMQ.matches && auto; if (!auto) clearTimeout(timer); });
   }
 
   /* ---------------------------------------------------------------------------
