@@ -15,13 +15,13 @@
   <meta property="og:title" content="Maskatech Labs — Digital Dental Laboratory">
   <meta property="og:description" content="Built from the scan up. Night guards and clear retainers, digitally designed for the individual case.">
   <meta property="og:url" content="https://maskatech.com/">
-  <meta property="og:image" content="https://maskatech.com/assets/img/og-image.png">
+  <meta property="og:image" content="https://maskatech.com/assets/img/og-image.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Maskatech Labs — Digital Dental Laboratory">
   <meta name="twitter:description" content="Built from the scan up. Night guards and clear retainers, digitally designed for the individual case.">
-  <meta name="twitter:image" content="https://maskatech.com/assets/img/og-image.png">
+  <meta name="twitter:image" content="https://maskatech.com/assets/img/og-image.jpg">
 
   <!-- Icons / manifest -->
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -101,13 +101,13 @@
           </h1>
           <p class="hero-lede" data-reveal>Your practice sends an intraoral scan. We design the appliance on it, fabricate it in-house, finish it by hand and deliver it back for the delivery appointment.</p>
           <div class="hero-ctas" data-reveal>
-            <a class="btn btn--primary" href="#contact" data-magnet>Start a case <span class="btn-arrow" aria-hidden="true">→</span></a>
+            <a class="btn btn--primary" href="#contact" data-magnet>Start a case <span class="btn-arrow" aria-hidden="true"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
             <a class="btn btn--ghost" href="#workflow" data-magnet>See the workflow</a>
           </div>
         </div>
 
         <div class="hero-stage" id="hero-stage">
-          <img class="hero-fallback" src="assets/img/appliance-layers.svg" width="600" height="600" alt="A stylised night guard built up layer by layer, drawn as stacked contour lines" decoding="async" fetchpriority="high">
+          <img class="hero-fallback" src="assets/img/appliance-layers.svg" width="600" height="600" alt="A stylised night guard built up layer by layer, drawn as stacked contour lines" decoding="async">
           <canvas class="hero-canvas" id="hero-canvas" aria-hidden="true"></canvas>
 
           <!-- Readouts describe the animation only (never business numbers) -->
@@ -116,7 +116,7 @@
             <span class="hud-phase" data-phase="design">Design</span>
             <span class="hud-phase" data-phase="print">Print</span>
           </div>
-          <p class="hud hud--layer" aria-hidden="true">Layer <b id="hud-layer">000</b><span class="hud-dim">/072</span></p>
+          <p class="hud hud--layer" aria-hidden="true">Layer <b id="hud-layer">000</b><span class="hud-dim" id="hud-total">/072</span></p>
           <p class="hud hud--orbit" aria-hidden="true">Orbit <b id="hud-orbit">---°</b></p>
           <button class="hud hud--motion" id="hud-motion" type="button" aria-pressed="true">
             <span class="hud-dot" aria-hidden="true"></span>Motion <span class="hud-state" aria-hidden="true">on</span>
@@ -147,8 +147,8 @@
     <!-- Kinetic strip -->
     <div class="ticker" aria-hidden="true">
       <div class="ticker-track">
-        <span>Intraoral scan</span><span class="ticker-sep">→</span><span>Digital design</span><span class="ticker-sep">→</span><span>In-house fabrication</span><span class="ticker-sep">→</span><span>Hand finish</span><span class="ticker-sep">→</span><span>Delivery appointment</span><span class="ticker-sep">◆</span>
-        <span>Intraoral scan</span><span class="ticker-sep">→</span><span>Digital design</span><span class="ticker-sep">→</span><span>In-house fabrication</span><span class="ticker-sep">→</span><span>Hand finish</span><span class="ticker-sep">→</span><span>Delivery appointment</span><span class="ticker-sep">◆</span>
+        <span>Intraoral scan</span><span class="ticker-sep"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Digital design</span><span class="ticker-sep"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>In-house fabrication</span><span class="ticker-sep"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Hand finish</span><span class="ticker-sep"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Delivery appointment</span><span class="ticker-sep"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2l6 6-6 6-6-6z" fill="currentColor"/></svg></span>
+        <span>Intraoral scan</span><span class="ticker-sep"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Digital design</span><span class="ticker-sep"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>In-house fabrication</span><span class="ticker-sep"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Hand finish</span><span class="ticker-sep"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Delivery appointment</span><span class="ticker-sep"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2l6 6-6 6-6-6z" fill="currentColor"/></svg></span>
       </div>
     </div>
 
@@ -305,7 +305,7 @@
 
         <p class="appliances-note" data-reveal>
           <span>Additional appliances by request.</span>
-          <a class="link" href="mailto:cases@maskatech.com" data-cfg-link="contactEmail">Ask about your case <span aria-hidden="true">→</span></a>
+          <a class="link" href="mailto:cases@maskatech.com" data-cfg-link="contactEmail">Ask about your case <svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
         </p>
       </div>
     </section>
@@ -320,7 +320,7 @@
             <p class="sec-idx" aria-hidden="true">03 — Capabilities</p>
             <h2 class="sec-title" id="stack-title">Always on the current stack.</h2>
           </div>
-          <p class="sec-lede">Five things that are true of every case we take.</p>
+          <p class="sec-lede">Five things that are true of how we work.</p>
         </header>
 
         <ol class="stack" data-reveal-group>
@@ -336,8 +336,8 @@
           </li>
           <li class="stack-item" data-reveal data-glow>
             <span class="stack-idx" aria-hidden="true">03</span>
-            <h3 class="stack-title">Additive fabrication</h3>
-            <p>Night guards are 3D printed in-house from the design file. Layer by layer, digitally exact.</p>
+            <h3 class="stack-title">In-house fabrication</h3>
+            <p>Built from the design file. Night guards are 3D printed in-house, layer by layer, digitally exact.</p>
           </li>
           <li class="stack-item" data-reveal data-glow>
             <span class="stack-idx" aria-hidden="true">04</span>
@@ -367,7 +367,7 @@
                 <p class="sec-lede">Scan the patient, send the case, book the delivery appointment. We handle the rest.</p>
               </header>
               <div class="practices-cta">
-                <a class="btn btn--primary" href="#contact" data-magnet>Start a case <span class="btn-arrow" aria-hidden="true">→</span></a>
+                <a class="btn btn--primary" href="#contact" data-magnet>Start a case <span class="btn-arrow" aria-hidden="true"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
                 <a class="link" href="mailto:cases@maskatech.com" data-cfg="contactEmail" data-cfg-link="contactEmail">cases@maskatech.com</a>
               </div>
             </div>
@@ -480,7 +480,7 @@
           </div>
           <div class="form-foot">
             <p class="form-note">Submitting opens your email app with the case details prefilled.</p>
-            <button class="btn btn--primary" type="submit" data-magnet>Prepare email <span class="btn-arrow" aria-hidden="true">→</span></button>
+            <button class="btn btn--primary" type="submit" data-magnet>Prepare email <span class="btn-arrow" aria-hidden="true"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
           </div>
           <p class="form-status" id="form-status" role="status"></p>
         </form>
@@ -519,7 +519,7 @@
           <h2 class="tag">Contact</h2>
           <ul class="footer-links">
             <li><a href="mailto:cases@maskatech.com" data-cfg="contactEmail" data-cfg-link="contactEmail">cases@maskatech.com</a></li>
-            <li><a href="https://www.theteethboutique.com" data-cfg-link="sisterPractice.url" rel="noopener">Sister practice: <span data-cfg="sisterPractice.name">The Teeth Boutique</span> <span aria-hidden="true">↗</span></a></li>
+            <li><a href="https://www.theteethboutique.com" data-cfg-link="sisterPractice.url" rel="noopener">Sister practice: <span data-cfg="sisterPractice.name">The Teeth Boutique</span>&nbsp;<svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M4 12L12 4M6 4h6v6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></li>
           </ul>
         </div>
       </div>
@@ -527,7 +527,7 @@
         <p class="tag">© <span id="year">2026</span> Maskatech Labs</p>
         <div class="footer-meta">
           <p class="tag">Serving Chicago practices</p>
-          <a class="tag" href="https://maskatech.com/">maskatech.com</a>
+          <a class="tag" href="#top">maskatech.com</a>
         </div>
       </div>
       <div class="footer-word" aria-hidden="true"><span>Maskatech</span></div>

@@ -8,7 +8,7 @@ lab. Anything the owner should confirm before launch is listed first.
 
 | Source | What it verified |
 | --- | --- |
-| Clinic's own email signature (sent from the clinic's mailbox, Dec 2025–May 2026) | "The Teeth Boutique", 1933 W Irving Park Rd. Suite 1, Chicago, IL 60613, (773) 857-2290 main, (773) 857-2280 main, (773) 857-2260 fax, website domain theteethboutique.com |
+| Clinic's own email signature (messages sent from the clinic's mailbox between Dec 2025 and May 2026) | "The Teeth Boutique", 1933 W Irving Park Rd. Suite 1, Chicago, IL 60613, (773) 857-2290 main, (773) 857-2280 main, (773) 857-2260 fax, website domain theteethboutique.com |
 | CMS NPI Registry, NPI 1447086772 | Legal name "TEETH BOUTIQUE PLLC", taxonomy "Dentist, General Practice", 1933 W Irving Park Rd Ste 1, Chicago, IL 60613-5182, phone 773-857-2280 |
 | Clinic → lab case emails (Dec 2025–Jan 2026) | Products: "Upper Night Guard", "Upper NG", "Lower Retainer"; intake: "we scanned a patient today … and have scheduled his delivery for 2/9/26"; the lab produces the appliance and it is delivered back for the delivery appointment |
 | Printer-vendor support thread (Dec 2025, cc the lab) | Night guards are 3D printed in-house from a design file |
@@ -24,8 +24,9 @@ earlier build verified it on 2026-09-06. No clinic tagline is used for that reas
 
 1. **cases@maskatech.com** — the mailbox (or a forward) must exist. It is the only contact channel on the site. It appears
    in `assets/js/site-config.js` (`contactEmail`) and, so the site works without JavaScript, literally in `index.html`
-   (Appliances note, For practices, Contact heading link, form `action`, footer), `404.html` and the JSON-LD. Change
-   both places together.
+   (JSON-LD `email`, Appliances note, For practices, Contact heading link, form `action`, footer) and `404.html`.
+   `main.js` holds no copy of its own: the JavaScript form handler reads the address from the form `action`, which the
+   config overrides when it loads. Change all of these places together.
 2. **"AI-assisted design where it earns its place"** (Capabilities 02) — moderate evidence only (an AI design workflow was
    in use in Dec 2025). Delete the clause if you would rather not say it; the sentence still reads correctly.
 3. **"Hand-finished"** (hero lede, Workflow 04, Capabilities 04) and **"Inspected before it leaves the lab"** (Workflow
@@ -57,9 +58,10 @@ earlier build verified it on 2026-09-06. No clinic tagline is used for that reas
 | "Built from the scan up." | Slogan; refers to scan-based intake (case emails) |
 | "Your practice sends an intraoral scan. We design the appliance on it, fabricate it in-house, finish it by hand and deliver it back for the delivery appointment." | Case emails (scan, delivery appointment); printer thread (in-house); "finish it by hand" = owner-confirm 3 |
 | Spec strip: Intake "Intraoral scan" · Design "Digital, per case" · Fabrication "In-house, from the design file" · Output "Night guards · Clear retainers" | Case emails; printer thread; design thread |
-| Readouts "Scan / Design / Print", "Layer nnn / 072", "Orbit nnn°", "Motion on/off" | Describe the canvas animation only (its phase, the number of contour rings drawn out of 72, the model's rotation). `aria-hidden`; not business numbers |
+| Readouts "Scan / Design / Print", "Layer nnn / NNN", "Orbit nnn°", "Motion on/off" | Describe the canvas animation only: its phase, the number of contour rings drawn so far out of the total the script draws (72 on wide screens, 56 on phones — the total is written by the script), and the model's rotation. `aria-hidden`; not business numbers |
 | Fallback image alt "A stylised night guard built up layer by layer, drawn as stacked contour lines" | Describes the illustration; scoped to a night guard because 3D printing is verified for night guards only |
 | Ticker "Intraoral scan → Digital design → In-house fabrication → Hand finish → Delivery appointment" | As the lede; decorative, `aria-hidden` |
+| Navigation labels, section indices ("01 — Workflow" …), button labels ("Start a case", "See the workflow", "Prepare email"), form labels, footer column headings | UI labels; no factual claim |
 
 ## 01 — Workflow
 
@@ -86,10 +88,10 @@ earlier build verified it on 2026-09-06. No clinic tagline is used for that reas
 
 | Text | Source |
 |---|---|
-| "Always on the current stack." / "Five things that are true of every case we take." | Framing; "five" counts the page items |
+| "Always on the current stack." / "Five things that are true of how we work." | Framing; "five" counts the page items |
 | 01 Scan-native — "Cases start as intraoral scans. The scan is the record, the model and the design input." | Case emails |
 | 02 Digital design — "Every appliance is designed on the scan, with AI-assisted design where it earns its place." | Design thread; owner-confirm 2 |
-| 03 Additive fabrication — "Night guards are 3D printed in-house from the design file. Layer by layer, digitally exact." | Printer thread (scoped to night guards) |
+| 03 In-house fabrication — "Built from the design file. Night guards are 3D printed in-house, layer by layer, digitally exact." | Printer thread (3D printing scoped to night guards); "built from the design file" = digital design input (design thread) |
 | 04 Hand-finished — "Digitally exact, finished by a person. Inspected before it leaves the lab." | Owner-confirm 3 |
 | 05 Tooling that proves itself — "We adopt new digital tooling as it proves itself, so the stack never stands still." | Generic (first sentence carried over from the earlier build) |
 
@@ -151,7 +153,7 @@ earlier build verified it on 2026-09-06. No clinic tagline is used for that reas
 | Domain status table (maskatech.com dates and registrar; maskatech.net; maskatechlabs.com not registered) | Verisign RDAP + GoDaddy lookup, 2026-09-18 |
 | "As of 2026-09-18 it forwards (in a frame) to theteethboutique.com" | Direct HTTPS fetch of https://maskatech.com |
 | GitHub Pages A / AAAA / CNAME values; "Enforce HTTPS can take up to 24 hours"; no CNAME file with GitHub Actions; custom 404 behaviour | GitHub Docs (cited in the README) |
-| "the site works with JavaScript off"; "No third-party font requests"; "no build step"; "every asset path is relative" | Repo inspection and a JavaScript-disabled render (see the PR test plan) |
+| "the site works with JavaScript off"; "No third-party font requests"; "no build step"; "every asset path is relative" | Repo inspection (no `href`/`src`/`url()` starts with `/` or names an external host other than theteethboutique.com; no package manifest or bundler) and a JavaScript-disabled Playwright render |
 
 ## Brand and company names in the repository
 
@@ -159,9 +161,9 @@ None is visible site copy and none is an equipment, software or material brand:
 
 | Name(s) | Where | Why |
 |---|---|---|
-| "Syne", "Inter Tight", "Geist Mono" | `font-family` values in CSS, `og.html`, `logo.svg`; file names in `assets/fonts/`; licence texts | The three self-hosted typefaces (SIL Open Font License) |
+| "Syne", "Inter Tight", "Geist Mono" | `font-family` values in CSS and `og.html`; file names in `assets/fonts/`; licence texts (`logo.svg` carries the wordmark as outlined paths and names no font) | The three self-hosted typefaces (SIL Open Font License) |
 | "Helvetica Neue", Helvetica, Arial, `system-ui`, SFMono-Regular, Menlo, Consolas, "Liberation Mono" | Fallback font stacks | System fonts named so text renders before or without the web fonts |
-| Bonjour Monde / Syne authors, Sora, Undercase Type, rsms, Vercel | `assets/fonts/OFL-*.txt` | Upstream copyright lines reproduced verbatim as the OFL requires |
+| The Syne Project Authors (gitlab.com/bonjour-monde), The Inter Project Authors (github.com/rsms), The Geist Project Authors (github.com/vercel) | `assets/fonts/OFL-*.txt` | Upstream copyright lines reproduced verbatim as the OFL requires |
 | GoDaddy, GitHub (Pages, Actions, Docs), Verisign, CMS NPI Registry, Python | `README.md`, this file | Registrar, hosting and verification sources; developer documentation, not site copy |
 | Twitter, "Open Graph" | `index.html` `<head>` meta names, `og.html` title | Standard social-card meta names; not rendered |
 | Safari | Code comment in `assets/js/main.js` | Explains a browser-compatibility branch |

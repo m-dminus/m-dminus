@@ -21,16 +21,17 @@ fallback. Every readout on the page describes that animation only; there are no 
 | --- | --- |
 | `index.html` | The site (one page, anchored sections) |
 | `404.html` | Not-found page |
-| `og.html` | 1200×630 source card used to render `assets/img/og-image.png` |
+| `og.html` | 1200×630 source card used to render `assets/img/og-image.jpg` (not published) |
 | `assets/css/style.css` | All styles (CSS custom properties, no build step) |
 | `assets/js/site-config.js` | **Edit contact details here** (email, sister-practice block) |
 | `assets/js/main.js` | Behaviour (progressive enhancement; the site works with JavaScript off) |
 | `assets/fonts/` | Self-hosted web fonts (Syne, Inter Tight, Geist Mono; `fonts.css` + `.woff2`) with their SIL OFL licence texts (`OFL-*.txt`). No third-party font requests. |
-| `assets/img/` | `appliance-layers.svg` (hero fallback, generated from the same geometry as the canvas), `logo.svg`, `og-image.png` (rendered from `og.html`) |
+| `assets/img/` | `appliance-layers.svg` (hero fallback, generated from the same geometry as the canvas), `logo.svg` (wordmark outlined as paths, no font dependency), `og-image.jpg` (rendered from `og.html`) |
 | `favicon.svg` | Site icon (root, referenced by the pages and the manifest) |
 | `robots.txt`, `sitemap.xml`, `site.webmanifest` | Crawler and PWA metadata |
-| `CONTENT-REVIEW.md` | Every factual statement on the site and where it was verified. **Read this before launch.** |
-| `.github/workflows/pages.yml` | Deploys the site to GitHub Pages on every push to `main` |
+| `CONTENT-REVIEW.md` | Every factual statement on the site and where it was verified. **Read this before launch.** (not published) |
+| `.github/workflows/pages.yml` | Deploys the site to GitHub Pages on every push to `main`; the README, this review, `og.html` and the dotfiles are left out of the published site |
+| `.nojekyll`, `.gitignore` | Tells GitHub Pages not to run Jekyll; ignores OS/editor files |
 
 There is no build step and no framework. Every file is plain HTML, CSS and JavaScript.
 
@@ -67,10 +68,10 @@ The domain is registered at GoDaddy. As of 2026-09-18 it forwards (in a frame) t
    - Optionally add four **AAAA** records for `@`: `2606:50c0:8000::153`, `2606:50c0:8001::153`, `2606:50c0:8002::153`, `2606:50c0:8003::153`.
    - Add a **CNAME** record for `www` pointing to `m-dminus.github.io`.
 3. **GoDaddy → maskatech.net:** set *Forwarding* to `https://maskatech.com` (permanent 301) so the .net resolves to the same site.
-4. **After the domain is live — switch `404.html` to root-absolute paths in one pass:** `href="/"`, `href="/#contact"`,
-   `href="/favicon.svg"`, `href="/assets/..."`. GitHub Pages serves the custom `404.html` for missing URLs, and only
-   root-absolute paths keep it styled for nested misses such as `/a/b/`. The relative paths it currently uses are the
-   correct choice while the site lives under the project sub-path (`/<repo>/`).
+4. Nothing to change in the pages: GitHub Pages serves the custom `404.html` for missing URLs (including nested ones such
+   as `/a/b/`), and a small inline script in `404.html` resolves its relative asset paths against the site root — `/` on
+   the custom domain, `/m-dminus/` on the project preview. If the repository is ever renamed, update the one `'m-dminus'`
+   string in that script.
 
 Source for the record values: GitHub Docs, "Managing a custom domain for your GitHub Pages site".
 No `CNAME` file is needed in the repository when deploying with GitHub Actions.
@@ -78,7 +79,8 @@ No `CNAME` file is needed in the repository when deploying with GitHub Actions.
 ## Before launch — items only you can finish
 
 1. **Create the mailbox `cases@maskatech.com`** (GoDaddy email forwarding or any mail host) or change the address in
-   `assets/js/site-config.js` **and** in `index.html` / `404.html`. It is the only contact channel on the site.
+   `assets/js/site-config.js` **and** in every literal copy in `index.html` (including the JSON-LD block) and `404.html`
+   — `CONTENT-REVIEW.md` item 1 lists each occurrence. It is the only contact channel on the site.
 2. **Confirm or delete "AI-assisted design where it earns its place"** (Capabilities 02). The evidence for it is
    moderate; the sentence still reads correctly without the clause.
 3. **Confirm the finishing wording** — "Hand-finished" and "Inspected before it leaves the lab" describe a generic

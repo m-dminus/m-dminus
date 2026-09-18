@@ -8,10 +8,24 @@
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#0a0914">
   <meta name="color-scheme" content="dark">
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="assets/fonts/fonts.css">
-  <link rel="stylesheet" href="assets/css/style.css">
-  <script>document.documentElement.classList.replace('no-js', 'js');</script>
+  <!-- GitHub Pages serves this page for any missing URL, including nested ones such as /a/b/. The relative
+       asset paths below resolve against the site root: "/" on the custom domain, "/<repo>/" on the project preview. -->
+  <script>
+    (function () {
+      var seg = location.pathname.split('/')[1];
+      var root = seg === 'm-dminus' ? '/m-dminus/' : '/';
+      document.write('<base href="' + root + '">'
+        + '<link rel="icon" href="favicon.svg" type="image/svg+xml">'
+        + '<link rel="stylesheet" href="assets/fonts/fonts.css">'
+        + '<link rel="stylesheet" href="assets/css/style.css">');
+      document.documentElement.classList.replace('no-js', 'js');
+    })();
+  </script>
+  <noscript>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="assets/fonts/fonts.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+  </noscript>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -39,7 +53,7 @@
         <h1 class="err-title" id="err-title">No layer at this address.</h1>
         <p>The address may have been typed incorrectly, or the page has moved. Everything else is where it was.</p>
         <div class="err-actions">
-          <a class="btn btn--primary" href="./">Back to the lab <span class="btn-arrow" aria-hidden="true">→</span></a>
+          <a class="btn btn--primary" href="./">Back to the lab <span class="btn-arrow" aria-hidden="true"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
           <a class="btn btn--ghost" href="mailto:cases@maskatech.com">cases@maskatech.com</a>
         </div>
       </div>
@@ -49,7 +63,7 @@
   <footer class="footer footer--min">
     <div class="wrap footer-bottom">
       <p class="tag">© 2026 Maskatech Labs</p>
-      <a class="tag" href="https://maskatech.com/">maskatech.com</a>
+      <a class="tag" href="./">maskatech.com</a>
     </div>
   </footer>
 </body>

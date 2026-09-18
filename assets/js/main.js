@@ -16,6 +16,7 @@
 
   const doc = document;
   const root = doc.documentElement;
+  root.classList.add('reveal');                              // CSS hides [data-reveal] only once this script runs
   const cfg = window.MASKATECH_CONFIG || {};
   const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
   const fineMQ = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -56,7 +57,7 @@
   const navToggle = nav && $('.nav-toggle', nav);
   const navMenu = $('#nav-menu');
   const progress = $('#nav-progress');
-  const main = $('#main');
+  const behind = $$('main, footer');
   if (nav) {
     let ticking = false;
     const paint = () => {
@@ -74,7 +75,9 @@
     nav.classList.toggle('is-open', open);
     navToggle.setAttribute('aria-expanded', String(open));
     navToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-    if (main && 'inert' in main) main.inert = open;               // the page behind the open menu is not reachable
+    behind.forEach((el) => { if ('inert' in el) el.inert = open; }); // the page behind the open menu is not reachable
+    root.classList.toggle('menu-open', open);
+    if (open) { const first = $('a', navMenu); if (first) first.focus(); }
   };
   if (nav && navToggle && navMenu) {
     navToggle.addEventListener('click', () => setMenu(!nav.classList.contains('is-open')));
@@ -94,12 +97,16 @@
   }
   // Active link follows the section in view
   const links = $$('.nav-link');
-  const sections = links.map((a) => $(a.getAttribute('href'))).filter(Boolean);
+  const sections = links.map((a) => $(a.getAttribute('href'))).concat([$('#top'), $('#contact')]).filter(Boolean);
   if ('IntersectionObserver' in window && sections.length) {
     const spy = new IntersectionObserver((entries) => {
       entries.forEach((en) => {
         if (!en.isIntersecting) return;
-        links.forEach((a) => a.classList.toggle('is-active', a.getAttribute('href') === '#' + en.target.id));
+        links.forEach((a) => {
+          const on = a.getAttribute('href') === '#' + en.target.id;   // hero / contact match no link → all cleared
+          a.classList.toggle('is-active', on);
+          if (on) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+        });
       });
     }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
     sections.forEach((s) => spy.observe(s));
@@ -132,7 +139,7 @@
   const motionBtn = $('#hud-motion');
   if (stage && canvas && canvas.getContext) {
     const ctx = canvas.getContext('2d');
-    const hudLayer = $('#hud-layer'), hudOrbit = $('#hud-orbit');
+    const hudLayer = $('#hud-layer'), hudOrbit = $('#hud-orbit'), hudTotal = $('#hud-total');
     const phasePills = $$('.hud-phase', stage);
 
     /* @geometry-start (assets/img/appliance-layers.svg is generated from the same parameters) */
@@ -167,16 +174,17 @@
       }
     }
     /* @geometry-end */
+    if (hudTotal) hudTotal.textContent = '/' + String(NL).padStart(3, '0');
 
-    const DPR = Math.min(2, window.devicePixelRatio || 1);
     let W = 0, H = 0, scale = 1, cx = 0, cy = 0;
-    // Frame guard: if frames run long, draw every other ring / point, then every third
-    let stride = 1, slowFrames = 0, lastFrame = 0;
+    // Frame guard: if drawing runs long, draw every other ring / point (then every third); recover when it is cheap again
+    let stride = 1, slowFrames = 0, cheapFrames = 0;
     const resize = () => {
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
       W = stage.clientWidth; H = stage.clientHeight;
-      canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
-      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-      scale = Math.min(W, H) * 0.36; cx = W * 0.5; cy = H * 0.52;
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      scale = Math.min(W, H) * 0.35; cx = W * 0.52; cy = H * 0.52;
     };
 
     // Camera
@@ -209,8 +217,7 @@
     const frame = (now) => {
       if (!running) return;
       if (!t0) t0 = now;
-      if (lastFrame && stride < 3) { if (now - lastFrame > 26) { if (++slowFrames >= 30) { stride++; slowFrames = 0; } } else slowFrames = Math.max(0, slowFrames - 1); }
-      lastFrame = now;
+      const tStart = performance.now();
       const el = (now - t0) % CYCLE;
       pointer.x += (pointer.tx - pointer.x) * 0.06; pointer.y += (pointer.ty - pointer.y) * 0.06;
       const yaw = 0.78 + 0.32 * Math.sin((now - t0) * 0.00021) + pointer.x * 0.35;
@@ -286,10 +293,15 @@
 
       // Readouts (only when the value changes)
       setPhase(phase);
-      const layerNo = el >= T_SCAN + T_DESIGN ? Math.min(72, Math.round(72 * (nDone / NL))) : 0;
+      const layerNo = el >= T_SCAN + T_DESIGN ? nDone : 0;
       if (layerNo !== lastLayer && hudLayer) { hudLayer.textContent = String(layerNo).padStart(3, '0'); lastLayer = layerNo; }
       const deg = Math.round((((yaw * 180) / Math.PI) % 360 + 360) % 360);
       if (deg !== lastOrbit && hudOrbit) { hudOrbit.textContent = String(deg).padStart(3, '0') + '°'; lastOrbit = deg; }
+
+      const cost = performance.now() - tStart;
+      if (cost > 12 && stride < 3) { cheapFrames = 0; if (++slowFrames >= 30) { stride++; slowFrames = 0; } }
+      else if (cost < 5 && stride > 1) { slowFrames = 0; if (++cheapFrames >= 180) { stride--; cheapFrames = 0; } }
+      else { slowFrames = Math.max(0, slowFrames - 1); }
 
       raf = requestAnimationFrame(frame);
     };
@@ -326,7 +338,7 @@
       stage.addEventListener('pointerleave', () => { pointer.tx = 0; pointer.ty = 0; });
     }
 
-    setMotion(stored ? stored === 'on' : !prefersReduced());
+    setMotion(prefersReduced() ? false : stored !== 'off');   // the OS setting wins; a remembered "off" also wins
   }
 
   /* ---------------------------------------------------------------------------
@@ -354,6 +366,7 @@
   if (fineMQ.matches) {
     $$('[data-glow]').forEach((el) => {
       el.addEventListener('pointermove', (e) => {
+        if (root.classList.contains('motion-off')) return;
         const r = el.getBoundingClientRect();
         el.style.setProperty('--mx', (e.clientX - r.left) + 'px');
         el.style.setProperty('--my', (e.clientY - r.top) + 'px');
@@ -362,6 +375,7 @@
     if (!prefersReduced()) {
       $$('[data-magnet]').forEach((el) => {
         el.addEventListener('pointermove', (e) => {
+          if (root.classList.contains('motion-off')) { el.style.transform = ''; return; }
           const r = el.getBoundingClientRect();
           const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
           el.style.transform = 'translate(' + clamp(dx * 0.12, -5, 5).toFixed(1) + 'px,' + clamp(dy * 0.18, -4, 4).toFixed(1) + 'px)';
@@ -378,12 +392,13 @@
     const status = $('#form-status');
     form.addEventListener('submit', (e) => {
       if (!form.checkValidity()) return;                       // let the browser show its validation UI
+      const to = (form.getAttribute('action') || '').replace(/^mailto:/i, '');   // the one address: config → action (see above)
+      if (!to.includes('@')) return;                           // no usable address: let the native submit proceed
       e.preventDefault();
       const v = (id) => (($('#' + id) || {}).value || '').trim();
-      const to = (typeof cfg.contactEmail === 'string' && cfg.contactEmail.includes('@')) ? cfg.contactEmail : 'cases@maskatech.com';
       const appliance = v('f-appliance');
       const subject = 'New case — ' + appliance;
-      const body = ['Name: ' + v('f-name'), 'Practice: ' + v('f-practice'), 'Email: ' + v('f-email'), 'Appliance: ' + appliance, '', 'Notes:', v('f-notes')].join('\n');
+      const body = ['Name: ' + v('f-name'), 'Practice: ' + v('f-practice'), 'Email: ' + v('f-email'), 'Appliance: ' + appliance, '', 'Notes:', v('f-notes')].join('\r\n');
       if (status) status.textContent = 'Opening your email app with the case details.';
       window.location.href = 'mailto:' + to + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
     });
