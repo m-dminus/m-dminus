@@ -30,7 +30,9 @@ fallback. Every readout on the page describes that animation only; there are no 
 | `favicon.svg` | Site icon (root, referenced by the pages and the manifest) |
 | `robots.txt`, `sitemap.xml`, `site.webmanifest` | Crawler and PWA metadata |
 | `CONTENT-REVIEW.md` | Every factual statement on the site and where it was verified. **Read this before launch.** (not published) |
-| `.github/workflows/pages.yml` | Deploys the site to GitHub Pages on every push to `main`; the README, this review, `og.html` and the dotfiles are left out of the published site |
+| `.github/workflows/pages.yml` | Deploys the site to GitHub Pages on every push to `main`; the README, this review, `og.html`, `deploy/` and the dotfiles are left out of the published site |
+| `.github/workflows/deploy-aws.yml` | Publishes the site to AWS (S3 + CloudFront) from the Actions tab |
+| `deploy/aws/` | CloudFormation template, one-command deploy script and instructions for AWS — see `deploy/aws/README.md` |
 | `.nojekyll`, `.gitignore` | Tells GitHub Pages not to run Jekyll; ignores OS/editor files |
 
 There is no build step and no framework. Every file is plain HTML, CSS and JavaScript.
@@ -57,7 +59,19 @@ python3 -m http.server 8080
    (also shown in **Settings → Pages**). Every asset path in the site is relative, so it works at that sub-path
    exactly as it will at the root of maskatech.com.
 
-## Attach the custom domain (maskatech.com)
+## Deploy to AWS instead (or as well)
+
+`deploy/aws/` publishes the same files as a private S3 bucket behind CloudFront (HTTPS, custom 404, optional custom
+domain). With the AWS CLI signed in, one command does it all:
+
+```bash
+bash deploy/aws/deploy.sh
+```
+
+`deploy/aws/README.md` covers the custom-domain options (Route 53 or DNS kept at GoDaddy) and the GitHub Actions
+workflow "Deploy site to AWS".
+
+## Attach the custom domain (maskatech.com) — GitHub Pages
 
 The domain is registered at GoDaddy. As of 2026-09-18 it forwards (in a frame) to theteethboutique.com. To point it at this site:
 

@@ -1,0 +1,44 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "StackLifecycle",
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:CreateStack",
+        "cloudformation:UpdateStack",
+        "cloudformation:DescribeStacks",
+        "cloudformation:DescribeStackEvents",
+        "cloudformation:DescribeChangeSet",
+        "cloudformation:CreateChangeSet",
+        "cloudformation:ExecuteChangeSet",
+        "cloudformation:DeleteChangeSet",
+        "cloudformation:GetTemplateSummary",
+        "cloudformation:ValidateTemplate"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ResourcesTheStackManages",
+      "Effect": "Allow",
+      "Action": [
+        "s3:CreateBucket", "s3:DeleteBucket", "s3:ListBucket", "s3:GetBucket*", "s3:PutBucket*", "s3:DeleteBucketPolicy",
+        "s3:PutEncryptionConfiguration", "s3:GetEncryptionConfiguration",
+        "s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:GetObjectVersion",
+        "cloudfront:CreateDistribution", "cloudfront:UpdateDistribution", "cloudfront:GetDistribution", "cloudfront:GetDistributionConfig", "cloudfront:DeleteDistribution", "cloudfront:TagResource", "cloudfront:UntagResource", "cloudfront:ListTagsForResource",
+        "cloudfront:CreateOriginAccessControl", "cloudfront:GetOriginAccessControl", "cloudfront:UpdateOriginAccessControl", "cloudfront:DeleteOriginAccessControl",
+        "cloudfront:CreateFunction", "cloudfront:UpdateFunction", "cloudfront:DescribeFunction", "cloudfront:PublishFunction", "cloudfront:DeleteFunction", "cloudfront:GetFunction",
+        "cloudfront:CreateInvalidation", "cloudfront:GetInvalidation",
+        "acm:RequestCertificate", "acm:DescribeCertificate", "acm:DeleteCertificate", "acm:AddTagsToCertificate", "acm:ListTagsForCertificate",
+        "route53:GetHostedZone", "route53:ListHostedZones", "route53:ChangeResourceRecordSets", "route53:GetChange", "route53:ListResourceRecordSets"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "Identity",
+      "Effect": "Allow",
+      "Action": "sts:GetCallerIdentity",
+      "Resource": "*"
+    }
+  ]
+}

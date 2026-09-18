@@ -26,7 +26,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Leave repository-only files out of the published site
-        run: rm -rf README.md CONTENT-REVIEW.md og.html .gitignore .github
+        run: rm -rf README.md CONTENT-REVIEW.md og.html .gitignore .github deploy
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site
