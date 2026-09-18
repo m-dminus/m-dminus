@@ -1,3 +1,73 @@
-# m-dminus
+# Maskatech Labs — website
 
-Websites and projects by Maskatech.
+Static marketing site for **Maskatech Labs**, the digital dental laboratory that designs and fabricates custom
+oral appliances (night guards, clear retainers) for dental practices, starting with its sister practice
+[The Teeth Boutique](https://www.theteethboutique.com) in Chicago.
+
+Canonical URL once deployed: **https://maskatech.com**
+
+> An earlier, more conservative build of this site lives on the branch `claude/maskatech-labs-website-0w03e2`
+> (pull request #1). This branch is a fresh design; it does not depend on that one.
+
+## What is in this repository
+
+| Path | Purpose |
+| --- | --- |
+| `index.html` | The site (one page, anchored sections) |
+| `404.html` | Not-found page |
+| `og.html` | 1200×630 source card used to render `assets/img/og-image.png` |
+| `assets/css/style.css` | All styles (CSS custom properties, no build step) |
+| `assets/js/site-config.js` | **Edit contact details here** (email, sister-practice block) |
+| `assets/js/main.js` | Behaviour (progressive enhancement; the site works with JavaScript off) |
+| `assets/fonts/` | Self-hosted web fonts with their SIL OFL licence texts. No third-party font requests. |
+| `assets/img/` | SVG artwork, Open Graph image |
+| `favicon.svg` | Site icon (root, referenced by the pages and the manifest) |
+| `robots.txt`, `sitemap.xml`, `site.webmanifest` | Crawler and PWA metadata |
+| `CONTENT-REVIEW.md` | Every factual statement on the site and where it was verified. **Read this before launch.** |
+| `.github/workflows/pages.yml` | Deploys the site to GitHub Pages on every push to `main` |
+
+There is no build step and no framework. Every file is plain HTML, CSS and JavaScript.
+
+## Preview locally
+
+Open `index.html` in a browser, or serve the folder:
+
+```bash
+python3 -m http.server 8080
+# then open the address it shows (port 8080) in a browser
+```
+
+## Deploy to GitHub Pages (one-time setup)
+
+1. In this repository open **Settings → Pages** and set **Source** to **GitHub Actions**.
+2. Merge to `main` (or run the "Deploy site to GitHub Pages" workflow manually from the Actions tab).
+3. Until the custom domain below is attached, the site is served at `https://m-dminus.github.io/m-dminus/`
+   (also shown in **Settings → Pages**). Every asset path in the site is relative, so it works at that sub-path
+   exactly as it will at the root of maskatech.com.
+
+## Attach the custom domain (maskatech.com)
+
+The domain is registered at GoDaddy. As of 2026-09-18 it forwards (in a frame) to theteethboutique.com. To point it at this site:
+
+1. **GitHub:** Settings → Pages → *Custom domain* → enter `maskatech.com` → Save. Wait for the DNS check, then tick **Enforce HTTPS** (GitHub says this option can take up to 24 hours to become available).
+2. **GoDaddy → maskatech.com → DNS:**
+   - Remove the existing *Forwarding* rule (the one that currently frames theteethboutique.com).
+   - Add four **A** records for `@` pointing to `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`.
+   - Optionally add four **AAAA** records for `@`: `2606:50c0:8000::153`, `2606:50c0:8001::153`, `2606:50c0:8002::153`, `2606:50c0:8003::153`.
+   - Add a **CNAME** record for `www` pointing to `m-dminus.github.io`.
+3. **GoDaddy → maskatech.net:** set *Forwarding* to `https://maskatech.com` (permanent 301) so the .net resolves to the same site.
+4. **After the domain is live — switch `404.html` to root-absolute paths in one pass:** `href="/"`, `href="/#contact"`,
+   `href="/favicon.svg"`, `href="/assets/..."`. GitHub Pages serves the custom `404.html` for missing URLs, and only
+   root-absolute paths keep it styled for nested misses such as `/a/b/`. The relative paths it currently uses are the
+   correct choice while the site lives under the project sub-path (`/<repo>/`).
+
+Source for the record values: GitHub Docs, "Managing a custom domain for your GitHub Pages site".
+No `CNAME` file is needed in the repository when deploying with GitHub Actions.
+
+## Domain status (checked against the .com/.net registry via RDAP and GoDaddy on 2026-09-18)
+
+| Domain | Status |
+| --- | --- |
+| maskatech.com | Registered via GoDaddy, Sept 11 2025 → Sept 11 2027. Currently forwards to theteethboutique.com. |
+| maskatech.net | Registered via GoDaddy. |
+| maskatechlabs.com | **Not registered by anyone** on that date (the registry has no record; GoDaddy lists it as available). If you meant to own it, it still needs to be bought. The site never references it. Once registered, forward it (301) to https://maskatech.com like the .net. |
