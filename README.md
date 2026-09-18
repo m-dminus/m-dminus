@@ -6,8 +6,14 @@ oral appliances (night guards, clear retainers) for dental practices, starting w
 
 Canonical URL once deployed: **https://maskatech.com**
 
+Design direction: **"Cure Light"** — a deep-indigo ground lit by two lights (amber where light touches something: the
+print's cure line, buttons, active numerals; violet as cold ambient scan light), glass surfaces, monospace metadata and
+big display type. The hero is a canvas sequence in which a night guard is scanned as a point cloud, designed as a
+wireframe and then printed layer by layer, with a static SVG of the finished stack as the no-JavaScript / reduced-motion
+fallback. Every readout on the page describes that animation only; there are no invented business numbers.
+
 > An earlier, more conservative build of this site lives on the branch `claude/maskatech-labs-website-0w03e2`
-> (pull request #1). This branch is a fresh design; it does not depend on that one.
+> (pull request #1). This branch is a fresh design and does not depend on it.
 
 ## What is in this repository
 
@@ -19,14 +25,19 @@ Canonical URL once deployed: **https://maskatech.com**
 | `assets/css/style.css` | All styles (CSS custom properties, no build step) |
 | `assets/js/site-config.js` | **Edit contact details here** (email, sister-practice block) |
 | `assets/js/main.js` | Behaviour (progressive enhancement; the site works with JavaScript off) |
-| `assets/fonts/` | Self-hosted web fonts with their SIL OFL licence texts. No third-party font requests. |
-| `assets/img/` | SVG artwork, Open Graph image |
+| `assets/fonts/` | Self-hosted web fonts (Syne, Inter Tight, Geist Mono; `fonts.css` + `.woff2`) with their SIL OFL licence texts (`OFL-*.txt`). No third-party font requests. |
+| `assets/img/` | `appliance-layers.svg` (hero fallback, generated from the same geometry as the canvas), `logo.svg`, `og-image.png` (rendered from `og.html`) |
 | `favicon.svg` | Site icon (root, referenced by the pages and the manifest) |
 | `robots.txt`, `sitemap.xml`, `site.webmanifest` | Crawler and PWA metadata |
 | `CONTENT-REVIEW.md` | Every factual statement on the site and where it was verified. **Read this before launch.** |
 | `.github/workflows/pages.yml` | Deploys the site to GitHub Pages on every push to `main` |
 
 There is no build step and no framework. Every file is plain HTML, CSS and JavaScript.
+
+Accessibility and motion: the site is complete with JavaScript disabled (static markup, fallback image, wrapped nav).
+The hero animation never starts when the visitor's system asks for reduced motion, and the **Motion** button on the
+stage turns it off or on at any time (remembered in the browser). Keyboard users get the same content in DOM order:
+skip link, nav, hero copy, Motion button, sections; the canvas and all readouts are hidden from assistive technology.
 
 ## Preview locally
 
@@ -63,6 +74,19 @@ The domain is registered at GoDaddy. As of 2026-09-18 it forwards (in a frame) t
 
 Source for the record values: GitHub Docs, "Managing a custom domain for your GitHub Pages site".
 No `CNAME` file is needed in the repository when deploying with GitHub Actions.
+
+## Before launch — items only you can finish
+
+1. **Create the mailbox `cases@maskatech.com`** (GoDaddy email forwarding or any mail host) or change the address in
+   `assets/js/site-config.js` **and** in `index.html` / `404.html`. It is the only contact channel on the site.
+2. **Confirm or delete "AI-assisted design where it earns its place"** (Capabilities 02). The evidence for it is
+   moderate; the sentence still reads correctly without the clause.
+3. **Confirm the finishing wording** — "Hand-finished" and "Inspected before it leaves the lab" describe a generic
+   finishing/QC step; make sure that is how you work.
+4. **maskatechlabs.com is not registered** (see the table below). If you want it, buy it and forward it to maskatech.com.
+
+Every factual statement on the site traces to a verified source in `CONTENT-REVIEW.md`; the list there is longer and
+names every place each item appears.
 
 ## Domain status (checked against the .com/.net registry via RDAP and GoDaddy on 2026-09-18)
 
