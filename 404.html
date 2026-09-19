@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page not found — Maskatech Labs</title>
+  <meta name="description" content="The page you requested does not exist. Return to Maskatech Labs.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0a0914">
+  <meta name="color-scheme" content="dark">
+  <!-- GitHub Pages serves this page for any missing URL, including nested ones such as /a/b/. The relative
+       asset paths below resolve against the site root: "/" on the custom domain, "/<repo>/" on the project preview. -->
+  <script>
+    (function () {
+      var seg = location.pathname.split('/')[1];
+      var root = seg === 'm-dminus' ? '/m-dminus/' : '/';
+      document.write('<base href="' + root + '">'
+        + '<link rel="icon" href="favicon.svg" type="image/svg+xml">'
+        + '<link rel="stylesheet" href="assets/fonts/fonts.css">'
+        + '<link rel="stylesheet" href="assets/css/style.css">');
+      document.documentElement.classList.replace('no-js', 'js');
+    })();
+  </script>
+  <noscript>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="assets/fonts/fonts.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+  </noscript>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="nav is-scrolled">
+    <div class="wrap nav-inner">
+      <a class="brand" href="./" aria-label="Maskatech Labs — home">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+          <path d="M6 27V15a10 10 0 0 1 20 0v12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+          <path class="mark-layer" d="M3 21.5h26M4.6 17h22.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <path class="mark-layer mark-layer--hot" d="M8.2 12.5h15.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span class="brand-word">Maskatech<span class="brand-labs">Labs</span></span>
+      </a>
+      <a class="btn btn--primary btn--sm" href="./#contact">Start a case</a>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <section class="err wrap" aria-labelledby="err-title">
+      <div class="err-inner">
+        <p class="tag tag--accent">Error — Not found</p>
+        <p class="err-code" aria-hidden="true">4<b>0</b>4</p>
+        <h1 class="err-title" id="err-title">No layer at this address.</h1>
+        <p>The address may have been typed incorrectly, or the page has moved. Everything else is where it was.</p>
+        <div class="err-actions">
+          <a class="btn btn--primary" href="./">Back to the lab <span class="btn-arrow" aria-hidden="true"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
+          <a class="btn btn--ghost" href="mailto:cases@maskatech.com">cases@maskatech.com</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer footer--min">
+    <div class="wrap footer-bottom">
+      <p class="tag">© 2026 Maskatech Labs</p>
+      <a class="tag" href="./">maskatech.com</a>
+    </div>
+  </footer>
+</body>
+</html>
