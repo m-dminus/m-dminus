@@ -57,7 +57,12 @@ python3 -m http.server 8080
 2. Merge to `main` (or run the "Deploy site to GitHub Pages" workflow manually from the Actions tab).
 3. Until the custom domain below is attached, the site is served at `https://m-dminus.github.io/m-dminus/`
    (also shown in **Settings → Pages**). Every asset path in the site is relative, so it works at that sub-path
-   exactly as it will at the root of maskatech.com.
+   exactly as it will at the root of maskatech.com. One thing does *not* work at that sub-path: `robots.txt` is only
+   honoured by crawlers when fetched from the origin's true root (`https://m-dminus.github.io/robots.txt`, a
+   different, unrelated site), so `robots.txt`'s `Sitemap:` line — and `sitemap.xml` itself — is not reachable by a
+   crawler during this interim. There is no static-file fix for that; it is a property of serving from a sub-path,
+   not a bug in these files, and it resolves itself the moment the custom domain is attached below (crawler
+   indexing is unlikely to matter yet regardless, since the interim page has no inbound links to be found by).
 
 ## Deploy to AWS instead (or as well)
 

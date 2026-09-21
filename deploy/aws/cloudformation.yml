@@ -33,7 +33,6 @@ Conditions:
   CreateCert: !And [!Condition HasZone, !Not [!Condition HasCert]]
   CustomDomain: !Or [!Condition HasZone, !Condition HasCert]
   WithWww: !Equals [!Ref IncludeWww, "true"]
-  CustomDomainWithWww: !And [!Condition CustomDomain, !Condition WithWww]
   ZoneWithWww: !And [!Condition HasZone, !Condition WithWww]
 
 Resources:
@@ -105,12 +104,17 @@ Resources:
 
   WwwRedirectFunction:
     Type: AWS::CloudFront::Function
-    Condition: CustomDomainWithWww
+    # Only when Route 53 hosts the zone: there, the stack itself points the apex's A/AAAA records at this
+    # distribution (see ApexRecords below), so a visitor who reaches www.<domain> can safely be sent to the apex.
+    # When DNS stays at GoDaddy (CertificateArn without HostedZoneId), GoDaddy cannot alias an apex domain to
+    # CloudFront, so deploy/aws/README.md instead has the owner forward the apex to https://www.<domain> — redirecting
+    # www back to the apex in that case would loop the two hosts against each other forever.
+    Condition: ZoneWithWww
     Properties:
       Name: !Sub "${AWS::StackName}-www-redirect"
       AutoPublish: true
       FunctionConfig:
-        Comment: Redirect www.<domain> to the apex domain
+        Comment: Redirect www.<domain> to the apex domain (Route 53 deployments only; see the Condition above)
         Runtime: cloudfront-js-2.0
       FunctionCode: |
         function handler(event) {
@@ -157,7 +161,7 @@ Resources:
           Compress: true
           CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6   # AWS managed policy "CachingOptimized"
           FunctionAssociations: !If
-            - CustomDomainWithWww
+            - ZoneWithWww
             - - EventType: viewer-request
                 FunctionARN: !GetAtt WwwRedirectFunction.FunctionARN
             - !Ref AWS::NoValue

@@ -309,7 +309,17 @@
     const start = () => { if (running || !visible) return; running = true; t0 = 0; stage.classList.add('is-live'); resize(); raf = requestAnimationFrame(frame); };
     const stop = () => { running = false; cancelAnimationFrame(raf); };
     const motionOff = () => root.classList.contains('motion-off');
-    const apply = () => { if (motionOff()) { stop(); stage.classList.remove('is-live'); } else start(); };
+    // The canvas is always drawn with the dark-theme palette (rgba literals below), which the user agent does not
+    // recolour the way it recolours CSS. Under forced colors (e.g. Windows High Contrast) those low-contrast
+    // colours land on a Canvas-coloured background and the animation becomes unreadable while the HUD readouts keep
+    // reporting a layer count and orbit angle for something the visitor cannot see. Keep the static SVG fallback
+    // (and its alt text) showing instead, the same as under reduced motion.
+    const forcedColorsMQ = window.matchMedia('(forced-colors: active)');
+    const forcedColors = () => forcedColorsMQ.matches;
+    // Single source of truth for "is the animation allowed to run right now" — every call site below goes through
+    // this (not just motionOff()) so forced colors is respected regardless of which event asks for a restart.
+    const allowedToRun = () => !motionOff() && !forcedColors();
+    const apply = () => { if (allowedToRun()) start(); else { stop(); stage.classList.remove('is-live'); } };
 
     // Motion toggle (also respects the OS reduced-motion setting on boot)
     const setMotion = (on, remember) => {
@@ -320,13 +330,14 @@
     };
     if (motionBtn) motionBtn.addEventListener('click', () => setMotion(motionOff(), true));
     onMQ(reduceMQ, () => setMotion(!prefersReduced()));
+    onMQ(forcedColorsMQ, apply);
     let stored = null; try { stored = localStorage.getItem('maskatech-motion'); } catch (err) { /* storage unavailable */ }
 
     // Pause when off-screen or the tab is hidden
     if ('IntersectionObserver' in window) {
-      new IntersectionObserver((entries) => { visible = entries[0].isIntersecting; if (visible) { if (!motionOff()) start(); } else stop(); }, { threshold: 0.05 }).observe(stage);
+      new IntersectionObserver((entries) => { visible = entries[0].isIntersecting; if (visible) { if (allowedToRun()) start(); } else stop(); }, { threshold: 0.05 }).observe(stage);
     }
-    doc.addEventListener('visibilitychange', () => { if (doc.hidden) stop(); else if (!motionOff() && visible) start(); });
+    doc.addEventListener('visibilitychange', () => { if (doc.hidden) stop(); else if (allowedToRun() && visible) start(); });
 
     // Resize
     let rt = 0;
@@ -347,17 +358,49 @@
   const wfSteps = $$('[data-wf-step]');
   const wfGlyphs = $$('[data-wf-glyph]');
   const wfIdx = $('#wf-hud-idx'), wfName = $('#wf-hud-name');
-  if (wfSteps.length && wfGlyphs.length && 'IntersectionObserver' in window) {
+  const wfNavEl = $('#nav'), wfCardEl = $('.wf-stage-card');
+  if (wfSteps.length && wfGlyphs.length) {
     const activate = (i) => {
       wfSteps.forEach((s, j) => s.classList.toggle('is-active', i === j));
       wfGlyphs.forEach((g, j) => g.classList.toggle('is-active', i === j));
       if (wfIdx) wfIdx.textContent = String(i + 1).padStart(2, '0');
       if (wfName) { const n = $('.wf-name', wfSteps[i]); if (n) wfName.textContent = n.textContent; }
     };
-    const wio = new IntersectionObserver((entries) => {
-      entries.forEach((en) => { if (en.isIntersecting) activate(wfSteps.indexOf(en.target)); });
-    }, { rootMargin: '-38% 0px -42% 0px', threshold: 0 });
-    wfSteps.forEach((s) => wio.observe(s));
+    // Pick the step whose centre is nearest a target line, recomputed directly from layout on every scroll —
+    // not gated by IntersectionObserver "is this step touching a fixed band" state. A band narrower than a step
+    // (which the readable area below the sticky strip on a short viewport can be) means only one step, possibly
+    // the wrong one, is ever "in" it at a given scroll position; scanning every step's actual position avoids that.
+    // At <=860px the stage becomes an opaque sticky strip stacked over the steps (see the CSS comment above that
+    // media query). Returns the strip's bottom edge in viewport px (0 on the wide layout, where there is no strip).
+    const stripBottom = () => (wfNavEl && wfCardEl && window.matchMedia('(max-width: 860px)').matches)
+      ? wfNavEl.getBoundingClientRect().height + 8 /* the stage's own top offset above the card */ + wfCardEl.getBoundingClientRect().height
+      : 0;
+    let lastActive = -1;
+    const pick = () => {
+      const strip = stripBottom();
+      const mid = (strip ? strip + 16 /* reading gap below the strip */ : 0) + (window.innerHeight - strip) / 2;
+      // Nearest-to-mid alone still picks a step whose centre has drifted back up under the strip late in its own
+      // scroll range, right before the next step would take over — "nearest" only needs the neighbour to be even
+      // further away, which near the strip boundary it briefly isn't. Never choose a step still under the strip
+      // while a step clear of it exists; only fall back to "least hidden" when nothing is clear yet (section entry).
+      let bestClear = -1, bestClearDist = Infinity;
+      let bestHidden = -1, bestHiddenTop = -Infinity;
+      wfSteps.forEach((s, i) => {
+        const r = s.getBoundingClientRect();
+        if (r.bottom <= 0 || r.top >= window.innerHeight) return; // off-screen entirely: not a candidate
+        if (r.top >= strip) {
+          const dist = Math.abs((r.top + r.bottom) / 2 - mid);
+          if (dist < bestClearDist) { bestClearDist = dist; bestClear = i; }
+        } else if (r.top > bestHiddenTop) { bestHiddenTop = r.top; bestHidden = i; }
+      });
+      const best = bestClear >= 0 ? bestClear : bestHidden;
+      if (best >= 0 && best !== lastActive) { activate(best); lastActive = best; }
+    };
+    let ticking = false;
+    const onScrollOrResize = () => { if (!ticking) { ticking = true; requestAnimationFrame(() => { ticking = false; pick(); }); } };
+    window.addEventListener('scroll', onScrollOrResize, { passive: true });
+    window.addEventListener('resize', onScrollOrResize, { passive: true });
+    pick();
   }
 
   /* ---------------------------------------------------------------------------

@@ -60,8 +60,12 @@ aws s3 sync . "s3://$BUCKET" --region "$REGION" --delete "${EXCLUDE[@]}" \
   --cache-control "public, max-age=86400"
 
 # 2) Pages and metadata: always revalidated, so a new deploy shows up immediately after the invalidation below.
-aws s3 sync . "s3://$BUCKET" --region "$REGION" "${EXCLUDE[@]}" \
+# The EXCLUDE array comes last: aws s3 sync applies filters in order and a later filter wins, so putting it after
+# --include "*.html" keeps og.html (matched by both --exclude "og.html" and --include "*.html") excluded rather than
+# re-included. --delete also removes it if an earlier version of this script already published it.
+aws s3 sync . "s3://$BUCKET" --region "$REGION" --delete \
   --exclude "*" --include "*.html" --include "*.xml" --include "*.txt" --include "*.webmanifest" \
+  "${EXCLUDE[@]}" \
   --cache-control "no-cache"
 
 # 3) Content types the CLI does not know on every platform

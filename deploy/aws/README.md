@@ -62,7 +62,10 @@ CERT_ARN=arn:aws:acm:us-east-1:123456789012:certificate/… bash deploy/aws/depl
 
 Finally, at GoDaddy point `www` (CNAME) at the CloudFront domain the script prints, and forward the apex domain
 `maskatech.com` to `https://www.maskatech.com` (GoDaddy cannot alias an apex domain to CloudFront; forwarding is its
-workaround). Remove the existing forwarding rule that currently frames theteethboutique.com first.
+workaround). Remove the existing forwarding rule that currently frames theteethboutique.com first. The stack only
+redirects `www` back to the apex when Route 53 hosts the zone (where the apex genuinely resolves to this
+distribution); with DNS kept at GoDaddy it does not, so the apex→`www` forward above is the one hop a visitor takes,
+not a loop.
 
 ## What the deploy uploads
 

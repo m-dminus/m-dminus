@@ -8,23 +8,29 @@
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#0a0914">
   <meta name="color-scheme" content="dark">
-  <!-- GitHub Pages serves this page for any missing URL, including nested ones such as /a/b/. The relative
-       asset paths below resolve against the site root: "/" on the custom domain, "/<repo>/" on the project preview. -->
+  <!-- GitHub Pages serves this page for any missing URL, including nested ones such as /a/b/. No <base> element is
+       used: it would make same-page anchors such as the skip link ("#main") resolve against the site root instead
+       of this page. Instead every internal reference below is written out with the computed root prefix. -->
   <script>
     (function () {
       var seg = location.pathname.split('/')[1];
       var root = seg === 'm-dminus' ? '/m-dminus/' : '/';
-      document.write('<base href="' + root + '">'
-        + '<link rel="icon" href="favicon.svg" type="image/svg+xml">'
-        + '<link rel="stylesheet" href="assets/fonts/fonts.css">'
-        + '<link rel="stylesheet" href="assets/css/style.css">');
+      document.write(
+        '<link rel="icon" href="' + root + 'favicon.svg" type="image/svg+xml">'
+        + '<link rel="stylesheet" href="' + root + 'assets/fonts/fonts.css">'
+        + '<link rel="stylesheet" href="' + root + 'assets/css/style.css">');
       document.documentElement.classList.replace('no-js', 'js');
+      document.documentElement.dataset.root = root;
     })();
   </script>
+  <!-- Root-absolute paths: correct once the custom domain is attached (site root "/") and for the AWS/CloudFront
+       deployment (also site root). During the interim GitHub Pages project preview at "/m-dminus/" a visitor who
+       reaches a nested missing URL (e.g. /m-dminus/a/b/) with JavaScript disabled will not get these assets, since a
+       static file cannot detect that prefix without running code; the script above handles that case instead. -->
   <noscript>
-    <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="assets/fonts/fonts.css">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/assets/fonts/fonts.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
   </noscript>
 </head>
 <body>
@@ -33,7 +39,7 @@
 
   <header class="nav is-scrolled">
     <div class="wrap nav-inner">
-      <a class="brand" href="./" aria-label="Maskatech Labs — home">
+      <a class="brand nav-home" href="/" aria-label="Maskatech Labs — home">
         <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
           <path d="M6 27V15a10 10 0 0 1 20 0v12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
           <path class="mark-layer" d="M3 21.5h26M4.6 17h22.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
@@ -41,7 +47,7 @@
         </svg>
         <span class="brand-word">Maskatech<span class="brand-labs">Labs</span></span>
       </a>
-      <a class="btn btn--primary btn--sm" href="./#contact">Start a case</a>
+      <a class="btn btn--primary btn--sm nav-home-contact" href="/#contact">Start a case</a>
     </div>
   </header>
 
@@ -53,7 +59,7 @@
         <h1 class="err-title" id="err-title">No layer at this address.</h1>
         <p>The address may have been typed incorrectly, or the page has moved. Everything else is where it was.</p>
         <div class="err-actions">
-          <a class="btn btn--primary" href="./">Back to the lab <span class="btn-arrow" aria-hidden="true"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
+          <a class="btn btn--primary nav-home" href="/">Back to the lab <span class="btn-arrow" aria-hidden="true"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
           <a class="btn btn--ghost" href="mailto:cases@maskatech.com">cases@maskatech.com</a>
         </div>
       </div>
@@ -63,8 +69,20 @@
   <footer class="footer footer--min">
     <div class="wrap footer-bottom">
       <p class="tag">© 2026 Maskatech Labs</p>
-      <a class="tag" href="./">maskatech.com</a>
+      <a class="tag nav-home" href="/">maskatech.com</a>
     </div>
   </footer>
+
+  <!-- Rewrite the root-absolute links above to the computed prefix (needed on the /m-dminus/ project preview;
+       a no-op once the custom domain is attached, since root is then "/"). Runs after the links exist in the DOM. -->
+  <script>
+    (function () {
+      var root = document.documentElement.dataset.root;
+      if (!root || root === '/') return;
+      Array.prototype.forEach.call(document.querySelectorAll('.nav-home'), function (a) { a.setAttribute('href', root); });
+      var cta = document.querySelector('.nav-home-contact');
+      if (cta) cta.setAttribute('href', root + '#contact');
+    })();
+  </script>
 </body>
 </html>
