@@ -52,7 +52,10 @@ CF_DOMAIN="$(output DistributionDomainName)"
 echo "==> Uploading the site to s3://$BUCKET"
 # Files that belong to the repository, not to the published site
 EXCLUDE=(--exclude ".git/*" --exclude ".github/*" --exclude "deploy/*" --exclude "README.md" --exclude "CONTENT-REVIEW.md"
-         --exclude "og.html" --exclude ".gitignore" --exclude ".nojekyll" --exclude ".DS_Store" --exclude "*/.DS_Store")
+         --exclude "og.html" --exclude ".gitignore" --exclude ".nojekyll" --exclude ".DS_Store" --exclude "*/.DS_Store"
+         # aws s3 sync walks the working directory, not the git index, so anything .gitignore expects to appear
+         # there locally (a Node tool run in this folder before deploying, an editor log) needs its own exclusion.
+         --exclude "node_modules/*" --exclude "*.log" --exclude "Thumbs.db" --exclude "*/Thumbs.db")
 
 # 1) Assets (fonts, images, CSS, JS): cached for a day. --delete removes assets that no longer exist.
 aws s3 sync . "s3://$BUCKET" --region "$REGION" --delete "${EXCLUDE[@]}" \
@@ -86,7 +89,8 @@ echo "  Site URL       : $SITE_URL"
 if [ -n "$HOSTED_ZONE_ID" ]; then
   echo "  DNS            : A/AAAA alias records were created in Route 53 zone $HOSTED_ZONE_ID"
 elif [ -n "$CERT_ARN" ]; then
-  echo "  DNS            : point $DOMAIN (ALIAS/ANAME) and www.$DOMAIN (CNAME) at $CF_DOMAIN"
+  echo "  DNS            : at GoDaddy, point www.$DOMAIN (CNAME) at $CF_DOMAIN and forward the apex $DOMAIN to https://www.$DOMAIN"
+  echo "                   (GoDaddy cannot alias an apex domain to CloudFront directly — see deploy/aws/README.md)"
 else
   echo "  DNS            : none needed — share the CloudFront URL, or re-run with HOSTED_ZONE_ID / CERT_ARN for $DOMAIN"
 fi

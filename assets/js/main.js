@@ -33,21 +33,31 @@
      data-cfg-link="path.to.value" → href (mailto: for emails, tel: for phones)
      --------------------------------------------------------------------------- */
   const getPath = (path) => path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : undefined), cfg);
-  const isPhone = (v) => /^[\d\s()+-]+$/.test(v);
+  // A phone number, written any common US way ("(773) 857-2290", "773.857.2290", "1-773-857-2290", "+1 773 857 2290"):
+  // digits plus the usual separators, with at least 7 digits so a stray short numeric string isn't misread as one.
+  const isPhone = (v) => /^[\d\s().+-]+$/.test(v) && (v.match(/\d/g) || []).length >= 7;
   $$('[data-cfg]').forEach((el) => {
     const v = getPath(el.dataset.cfg);
-    if (typeof v === 'string' && v.trim()) el.textContent = v;
+    if (typeof v === 'string' && v.trim()) el.textContent = v.trim();
   });
   $$('[data-cfg-link]').forEach((el) => {
-    const v = getPath(el.dataset.cfgLink);
-    if (typeof v !== 'string' || !v.trim()) return;
+    const raw = getPath(el.dataset.cfgLink);
+    if (typeof raw !== 'string' || !raw.trim()) return;
+    const v = raw.trim();
     if (v.includes('@')) el.setAttribute('href', 'mailto:' + v);
-    else if (isPhone(v)) el.setAttribute('href', 'tel:+1' + v.replace(/\D/g, ''));
+    else if (isPhone(v)) {
+      const digits = v.replace(/\D/g, '');
+      // A number already written with its country code (11 digits starting with 1) keeps it; a bare 10-digit US
+      // number gets a 1 prefixed. Writing it either way in site-config.js now produces the same tel: link.
+      const withCountry = digits.length === 11 && digits[0] === '1' ? digits : '1' + digits;
+      el.setAttribute('href', 'tel:+' + withCountry);
+    }
     else el.setAttribute('href', v);
   });
   const form = $('#case-form');
-  if (form && typeof cfg.contactEmail === 'string' && cfg.contactEmail.includes('@')) {
-    form.setAttribute('action', 'mailto:' + cfg.contactEmail);
+  const contactEmail = typeof cfg.contactEmail === 'string' ? cfg.contactEmail.trim() : '';
+  if (form && contactEmail.includes('@')) {
+    form.setAttribute('action', 'mailto:' + contactEmail);
   }
 
   /* ---------------------------------------------------------------------------
@@ -93,7 +103,7 @@
       }
     });
     doc.addEventListener('click', (e) => { if (nav.classList.contains('is-open') && !nav.contains(e.target)) setMenu(false); });
-    window.addEventListener('resize', () => { if (window.innerWidth > 900 && nav.classList.contains('is-open')) setMenu(false); }, { passive: true });
+    window.addEventListener('resize', () => { if (window.innerWidth > 980 && nav.classList.contains('is-open')) setMenu(false); }, { passive: true });  // matches the @media (max-width: 980px) breakpoint in style.css
   }
   // Active link follows the section in view
   const links = $$('.nav-link');
@@ -329,9 +339,15 @@
       apply();
     };
     if (motionBtn) motionBtn.addEventListener('click', () => setMotion(motionOff(), true));
-    onMQ(reduceMQ, () => setMotion(!prefersReduced()));
+    // The OS setting always wins when it asks for reduced motion; short of that, a remembered "off" also wins.
+    // Read fresh each time (not just once at boot) so a later OS-setting change still honours a stored "off"
+    // instead of unconditionally turning the animation back on underneath it.
+    const resolveMotion = () => {
+      let stored = null; try { stored = localStorage.getItem('maskatech-motion'); } catch (err) { /* storage unavailable */ }
+      return prefersReduced() ? false : stored !== 'off';
+    };
+    onMQ(reduceMQ, () => setMotion(resolveMotion()));
     onMQ(forcedColorsMQ, apply);
-    let stored = null; try { stored = localStorage.getItem('maskatech-motion'); } catch (err) { /* storage unavailable */ }
 
     // Pause when off-screen or the tab is hidden
     if ('IntersectionObserver' in window) {
@@ -349,7 +365,7 @@
       stage.addEventListener('pointerleave', () => { pointer.tx = 0; pointer.ty = 0; });
     }
 
-    setMotion(prefersReduced() ? false : stored !== 'off');   // the OS setting wins; a remembered "off" also wins
+    setMotion(resolveMotion());
   }
 
   /* ---------------------------------------------------------------------------
@@ -441,7 +457,10 @@
       const v = (id) => (($('#' + id) || {}).value || '').trim();
       const appliance = v('f-appliance');
       const subject = 'New case — ' + appliance;
-      const body = ['Name: ' + v('f-name'), 'Practice: ' + v('f-practice'), 'Email: ' + v('f-email'), 'Appliance: ' + appliance, '', 'Notes:', v('f-notes')].join('\r\n');
+      // A textarea's value always has LF-only line breaks, even where the join below uses RFC 6068's required CRLF;
+      // normalise the notes field the same way so a multi-line note doesn't mix the two inside one mailto body.
+      const notes = v('f-notes').replace(/\r?\n/g, '\r\n');
+      const body = ['Name: ' + v('f-name'), 'Practice: ' + v('f-practice'), 'Email: ' + v('f-email'), 'Appliance: ' + appliance, '', 'Notes:', notes].join('\r\n');
       if (status) status.textContent = 'Opening your email app with the case details.';
       window.location.href = 'mailto:' + to + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
     });

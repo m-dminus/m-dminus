@@ -30,7 +30,7 @@ fallback. Every readout on the page describes that animation only; there are no 
 | `favicon.svg` | Site icon (root, referenced by the pages and the manifest) |
 | `robots.txt`, `sitemap.xml`, `site.webmanifest` | Crawler and PWA metadata |
 | `CONTENT-REVIEW.md` | Every factual statement on the site and where it was verified. **Read this before launch.** (not published) |
-| `.github/workflows/pages.yml` | Deploys the site to GitHub Pages on every push to `main`; the README, this review, `og.html`, `deploy/` and the dotfiles are left out of the published site |
+| `.github/workflows/pages.yml` | Deploys the site to GitHub Pages on every push to `main`; the README, this review, `og.html`, `deploy/`, `.gitignore` and `.github` are left out of the published site (`.nojekyll` **is** published — it is meant to be read by GitHub Pages, so that's fine) |
 | `.github/workflows/deploy-aws.yml` | Publishes the site to AWS (S3 + CloudFront) from the Actions tab |
 | `deploy/aws/` | CloudFormation template, one-command deploy script and instructions for AWS — see `deploy/aws/README.md` |
 | `.nojekyll`, `.gitignore` | Tells GitHub Pages not to run Jekyll; ignores OS/editor files |
@@ -39,7 +39,8 @@ There is no build step and no framework. Every file is plain HTML, CSS and JavaS
 
 Accessibility and motion: the site is complete with JavaScript disabled (static markup, fallback image, wrapped nav).
 The hero animation never starts when the visitor's system asks for reduced motion, and the **Motion** button on the
-stage turns it off or on at any time (remembered in the browser). Keyboard users get the same content in DOM order:
+stage turns it off or on at any time (remembered in the browser, unless the system is asking for reduced motion,
+which always wins over a remembered "on"). Keyboard users get the same content in DOM order:
 skip link, nav, hero copy, Motion button, sections; the canvas and all readouts are hidden from assistive technology.
 
 ## Preview locally

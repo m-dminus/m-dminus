@@ -70,8 +70,12 @@ not a loop.
 ## What the deploy uploads
 
 Everything in the repository except the repository-only files: `.git`, `.github`, `deploy/`, `README.md`,
-`CONTENT-REVIEW.md`, `og.html`, `.gitignore`, `.nojekyll`. Assets are cached for one day; HTML and metadata are
-always revalidated, and every deploy invalidates the whole CloudFront cache, so changes show up within a minute.
+`CONTENT-REVIEW.md`, `og.html`, `.gitignore`, `.nojekyll`. HTML and metadata are always revalidated, and every deploy
+invalidates the whole CloudFront cache, so a page's own markup shows up within a minute for every visitor. Assets
+(CSS, JS, fonts, images) are cached for one day at an un-versioned URL: a CloudFront invalidation clears CloudFront's
+own cache, but a browser that fetched a stylesheet or script within the last day keeps serving its own cached copy
+regardless, so a deploy that changes both markup and an asset can show the new markup with the old asset for up to a
+day on a returning visitor's machine (a first-time visitor, or one who hard-refreshes, always gets the new asset).
 
 ## Notes
 

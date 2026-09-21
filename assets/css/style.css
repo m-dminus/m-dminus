@@ -246,7 +246,10 @@ p.tag { margin: 0; }
 [data-glow]:hover::after { opacity: 1; }
 
 /* Scroll reveal (JS only) */
-html.reveal [data-reveal] { opacity: 0; transform: translateY(18px); transition: opacity var(--d-3) var(--ease-out), transform var(--d-3) var(--ease-out); }
+/* Every .card and .stack-item also carries data-reveal; this transition shorthand (specificity 0,2,1) otherwise
+   overrides their own border-colour hover transition instead of adding to it, so the border-colour change snaps
+   instantly rather than fading. Include it (and .card's transform) in this list too, rather than drop them. */
+html.reveal [data-reveal] { opacity: 0; transform: translateY(18px); transition: opacity var(--d-3) var(--ease-out), transform var(--d-3) var(--ease-out), border-color var(--d-2) var(--ease); }
 html.reveal [data-reveal].is-in { opacity: 1; transform: none; }
 html.reveal [data-reveal-group] [data-reveal]:nth-child(2) { transition-delay: 70ms; }
 html.reveal [data-reveal-group] [data-reveal]:nth-child(3) { transition-delay: 140ms; }
@@ -278,28 +281,34 @@ html.reveal [data-reveal-group] [data-reveal]:nth-child(5) { transition-delay: 2
 .nav-inner { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .nav-progress { position: absolute; left: 0; bottom: -1px; height: 1px; width: 100%; background: var(--accent); transform-origin: left; transform: scaleX(0); opacity: 0.9; pointer-events: none; }
 html.no-js .nav-progress { display: none; }
+@media (forced-colors: active) { .nav-progress { background: LinkText; forced-color-adjust: none; } }
 html.no-js .nav { background: rgba(10, 9, 20, 0.88); border-bottom-color: var(--line); }
 
 .brand { display: inline-flex; align-items: center; gap: 0.7rem; min-height: 2.75rem; min-width: 0; color: var(--fg); }
 .brand-mark { width: 30px; height: 30px; flex: none; color: var(--fg); }
 .brand-mark .mark-layer { color: var(--fg-3); }
 .brand-mark .mark-layer--hot { color: var(--accent); }
+/* Chromium does not remap an inline SVG's stroke="currentColor" the way it remaps text and backgrounds, so a
+   custom-property-driven `color` here keeps its dark-theme hue on a forced white Canvas instead of following the
+   system palette like everything else on the page. Pin it to a system color explicitly. */
+@media (forced-colors: active) { .brand-mark, .brand-mark .mark-layer, .brand-mark .mark-layer--hot { color: CanvasText; } }
 .brand-word { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .brand-labs { margin-left: 0.4em; font-family: var(--font-mono); font-weight: 500; font-size: 0.68rem; letter-spacing: var(--track); text-transform: uppercase; color: var(--accent); vertical-align: 0.18em; }
 
 .nav-links { display: flex; align-items: center; gap: var(--s-1); }
 .nav-link {
   position: relative; display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 0.85rem;
-  color: var(--fg-2); font-size: var(--fs-2); font-weight: 500; border-radius: 999px;
+  color: var(--fg-2); font-size: var(--fs-2); font-weight: 500; border-radius: 999px; white-space: nowrap;
   transition: color var(--d-1) var(--ease), background-color var(--d-1) var(--ease);
 }
 .nav-link:hover { color: var(--fg); background: var(--glass); }
 .nav-link.is-active { color: var(--fg); }
 .nav-link.is-active::after { content: ""; position: absolute; left: 50%; bottom: 0.35rem; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); transform: translateX(-50%); }
+@media (forced-colors: active) { .nav-link.is-active::after { background: LinkText; forced-color-adjust: none; } }
 .nav-menu { display: flex; align-items: center; gap: var(--s-5); min-width: 0; }
 
 .nav-toggle {
-  display: none; position: relative; width: 2.75rem; height: 2.75rem; border-radius: 50%;
+  display: none; position: relative; width: 2.75rem; height: 2.75rem; flex: none; border-radius: 50%;
   border: 1px solid var(--line-2); background: var(--glass);
 }
 .nav-toggle-bar, .nav-toggle-bar::before, .nav-toggle-bar::after {
@@ -319,8 +328,15 @@ html.no-js .nav { background: rgba(10, 9, 20, 0.88); border-bottom-color: var(--
 }
 /* The 404 page's header carries a bare CTA next to the brand; hide it on narrow phones where it cannot fit */
 @media (max-width: 520px) { .nav-inner > .btn--sm { display: none; } }
+/* The nav row needs roughly 40px gutter + 234px brand + 16px gap + 44px toggle = 334px; below that the wordmark
+   was truncated to an ellipsis instead of just dropping its "LABS" suffix. Drop the suffix first. */
+@media (max-width: 360px) { .brand-labs { display: none; } }
 
-@media (max-width: 900px) {
+/* The desktop nav (five links, the CTA and the brand) needs about 980px to lay out on one line; below that but
+   above the old 900px cutoff, the brand wordmark was clipped to an ellipsis and "For practices" wrapped inside the
+   4.25rem bar with nowhere to go. main.js's matching breakpoint (the resize handler that closes the mobile menu) is
+   kept at 980px too. */
+@media (max-width: 980px) {
   .nav-toggle { display: inline-flex; }
   .nav-menu {
     position: fixed; inset: var(--nav-h) 0 auto 0;
@@ -409,6 +425,12 @@ html.js .hero-title .line:nth-child(3) .word { animation-delay: 180ms; }
 }
 .hero-fallback { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 6%; transition: opacity var(--d-4) var(--ease); }
 html.js .hero-stage.is-live .hero-fallback { opacity: 0; }
+/* The fallback is a raster <img> of an external SVG whose strokes are faint (some at 16% opacity) light-lavender
+   lines meant for the dark ground; an <img>'s own pixels are not recoloured under forced colors the way CSS-driven
+   content is, so on a white Canvas they stay near-invisible. A strong contrast boost is a partial fix — it improves
+   the light-on-white High Contrast theme this was measured against, but a dark-on-black forced-colors theme is not
+   verified — and screen-reader users already get the real content through the image's alt text regardless. */
+@media (forced-colors: active) { .hero-fallback { filter: contrast(3.5) brightness(0.85); } }
 .hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
 html.no-js .hero-canvas { display: none; }
 
@@ -474,7 +496,10 @@ html.no-js .hud { display: none; }
 .ticker-track span { display: inline-block; }
 .ticker-sep { color: var(--accent); display: inline-flex; align-items: center; }
 .ticker-sep .ico { width: 0.9em; height: 0.9em; }
-@keyframes ticker { to { transform: translateX(-50%); } }
+/* The track is two copies of 10 items plus the flex gap between every item, including between the two copies; -50%
+   of the whole track's width is half a gap (20px) short of the second copy's actual start, so the loop visibly
+   snaps back by that amount on every repeat. Move by the gap's width too. */
+@keyframes ticker { to { transform: translateX(calc(-50% - 1.25rem)); } }
 
 /* ---------------------------------------------------------------------------
    6. Workflow
@@ -503,8 +528,8 @@ html.no-js .hud { display: none; }
 .wf-glyph .g-points circle, .wf-glyph .g-nodes rect { fill: var(--accent); stroke: none; }
 .wf-glyph .g-scan { animation: scan 3.2s var(--ease) infinite alternate; }
 @keyframes scan { from { transform: translateY(-64px); } to { transform: translateY(64px); } }
-.wf-glyph .g-draw { stroke-dasharray: 700; stroke-dashoffset: 0; animation: draw 3.6s var(--ease-out) infinite; }   /* resting state visible; the keyframe starts hidden */
-@keyframes draw { 0% { stroke-dashoffset: 700; } 65% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; } }
+.wf-glyph .g-draw { stroke-dasharray: 800; stroke-dashoffset: 0; animation: draw 3.6s var(--ease-out) infinite; }   /* resting state visible; the keyframe starts hidden. The path itself is ~760 units long (measured via getTotalLength()); 800 clears it so the dash length never falls short and lets the tail end blink in early. */
+@keyframes draw { 0% { stroke-dashoffset: 800; } 65% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; } }
 .wf-glyph .g-printline { animation: printline 3.2s linear infinite; }
 @keyframes printline { from { transform: translateY(58px); opacity: 1; } 90% { opacity: 1; } to { transform: translateY(-122px); opacity: 0; } }
 .wf-glyph .g-layers path { opacity: 1; animation: layerin 3.2s linear infinite; }
@@ -517,6 +542,15 @@ html.no-js .hud { display: none; }
 @keyframes loupe { from { transform: translate(-40px, 90px); } to { transform: translate(40px, 90px); } }
 .wf-glyph .g-route { stroke-dasharray: 6 8; animation: route 1.2s linear infinite; }
 @keyframes route { to { stroke-dashoffset: -28; } }
+/* Same Chromium behaviour as the .brand-mark rule above: inline SVG stroke/fill are not remapped under forced
+   colors, so these custom-property-driven glyph strokes stay in the dark-theme palette on a white Canvas and the
+   card reads as empty. Pin every drawn part to system colors. */
+@media (forced-colors: active) {
+  .wf-glyph, .wf-glyph .g-soft, .wf-glyph .g-line { stroke: CanvasText; }
+  .wf-glyph .g-hot { stroke: LinkText; }
+  .wf-glyph .g-fill { fill: Canvas; stroke: CanvasText; }
+  .wf-glyph .g-points circle, .wf-glyph .g-nodes rect { fill: LinkText; }
+}
 html.no-js .wf-glyph { display: none; }
 html.no-js .wf-glyph:first-of-type { display: block; opacity: 1; transform: none; }
 
@@ -530,6 +564,10 @@ html.no-js .wf-glyph:first-of-type { display: block; opacity: 1; transform: none
 .wf-step.is-active .wf-num { color: var(--accent); }
 .wf-name { font-size: var(--fs-5); font-weight: 800; margin-bottom: var(--s-2); transition: color var(--d-2) var(--ease); }
 .wf-body p { margin: 0; color: var(--fg-2); max-width: 30rem; transition: color var(--d-2) var(--ease); }
+/* Forced colors collapses every author text colour to one system colour, so "active" vs "inactive" step, which is
+   otherwise only a colour difference (.wf-num's accent, .wf-name/.wf-body p dimming below), stops being visible at
+   all. Give the active step a state that survives that collapse: colour is not forced on border-color/font-weight. */
+@media (forced-colors: active) { .wf-step.is-active { border-left: 3px solid LinkText; padding-left: 0.75rem; } .wf-step.is-active .wf-num, .wf-step.is-active .wf-name { font-weight: 800; } }
 html.js .wf-step:not(.is-active) .wf-name { color: var(--fg-2); }
 html.js .wf-step:not(.is-active) .wf-body p { color: var(--fg-3); }
 
@@ -542,7 +580,10 @@ html.js .wf-step:not(.is-active) .wf-body p { color: var(--fg-3); }
      the step list; main.js reads the resulting strip height back to keep its "active step" detection in sync. */
   .wf-stage-card { aspect-ratio: auto; height: clamp(6rem, calc(100svh - var(--nav-h) - 11.5rem), 10.5rem); max-width: none; background: var(--bg-1); }
   .wf-stage-card::after { display: none; }
-  .wf-glyph { inset: 4% 0; width: 100%; height: 92%; }
+  /* At full width the label (bottom-right, up to "Finish & inspect" at 244px in Syne 800) ran across the glyph
+     artwork underneath it, which spans the whole strip. Keep the glyph to the left half so the label's corner
+     stays clear. */
+  .wf-glyph { inset: 4% auto 4% 0; width: 55%; height: auto; }
   .wf-stage-name { font-size: var(--fs-4); }
   html.no-js .wf-stage { position: relative; top: auto; }
   .wf-step { grid-template-columns: 3rem 1fr; }
@@ -556,6 +597,7 @@ html.js .wf-step:not(.is-active) .wf-body p { color: var(--fg-3); }
 .appliance-title { font-size: var(--fs-5); font-weight: 800; margin-top: var(--s-2); }
 .appliance-icon { width: 64px; height: 64px; flex: none; color: var(--fg-2); }
 .appliance-icon .icon-hot { color: var(--accent); }
+@media (forced-colors: active) { .appliance-icon, .appliance-icon .icon-hot { color: CanvasText; } }
 .appliances-note {
   display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-5);
   margin: var(--s-6) 0 0; padding-top: var(--s-5); border-top: 1px solid var(--line); color: var(--fg-2);
@@ -619,6 +661,7 @@ html.js .wf-step:not(.is-active) .wf-body p { color: var(--fg-3); }
 .clinic-name { font-size: var(--fs-5); font-weight: 800; margin-top: var(--s-2); }
 .clinic-mark { display: inline-grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 50%; border: 1px solid var(--line-2); color: var(--accent); flex: none; }
 .clinic-mark svg { width: 20px; height: 20px; }
+@media (forced-colors: active) { .clinic-mark { color: CanvasText; } }
 @media (max-width: 860px) { .clinic { grid-template-columns: 1fr; } .clinic .sec-head { margin-bottom: var(--s-2); } }
 
 /* ---------------------------------------------------------------------------
@@ -641,6 +684,10 @@ html.js .wf-step:not(.is-active) .wf-body p { color: var(--fg-3); }
 }
 .field textarea { min-height: 8rem; resize: vertical; line-height: 1.5; }
 .field select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23bdb9d6' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; padding-right: 2.75rem; }
+/* The arrow's stroke colour is baked into the data URI as a literal hex value, so it cannot follow the system
+   palette under forced colors and stays low-contrast on a Canvas-forced field. Fall back to the browser's own
+   native select rendering there instead, which does track the system High Contrast theme correctly. */
+@media (forced-colors: active) { .field select { appearance: auto; background-image: none; padding-right: 1rem; } }
 .field select option { background: var(--bg-2); color: var(--fg); }
 .field input::placeholder, .field textarea::placeholder { color: var(--fg-3); }
 .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid transparent; outline-offset: 2px; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
@@ -659,12 +706,15 @@ html.js .wf-step:not(.is-active) .wf-body p { color: var(--fg-3); }
 .footer-col h2 { margin-bottom: var(--s-4); }
 .footer-links { display: grid; gap: var(--s-1); }
 .footer-links a { display: inline-block; padding: 0.65rem 0; color: var(--fg-2); font-size: var(--fs-2); line-height: 1.5; transition: color var(--d-1) var(--ease); }
-.footer-links .ico { width: 0.85em; height: 0.85em; vertical-align: -0.05em; }
+.footer-links .ico { display: inline-block; width: 0.85em; height: 0.85em; vertical-align: -0.05em; }
 .footer-links a:hover { color: var(--fg); }
 .footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--s-3) var(--s-5); margin-top: var(--s-7); padding-top: var(--s-5); border-top: 1px solid var(--line); }
 .footer-meta { display: flex; flex-wrap: wrap; gap: var(--s-3) var(--s-5); }
 .footer-bottom a.tag, .footer-bottom p.tag { display: inline-block; line-height: 2.5rem; }
 .footer--min { padding-block: var(--s-6); }
+/* On 404.html, .footer-bottom is the footer's only child, so its own border-top (plus the footer's) draws two
+   hairlines with an empty band between them where .footer-grid would otherwise have been. */
+.footer--min .footer-bottom { margin-top: 0; padding-top: 0; border-top: 0; }
 .footer-word { overflow: clip; margin: var(--s-8) 0 calc(-0.22em); pointer-events: none; user-select: none; container-type: inline-size; }
 .footer-word span {
   display: block; font-family: var(--font-display); font-weight: 800; font-size: clamp(2.6rem, 10.3vw, 11rem); font-size: 11cqw; line-height: 0.9; letter-spacing: -0.04em;
@@ -678,7 +728,7 @@ html.js .wf-step:not(.is-active) .wf-body p { color: var(--fg-3); }
 /* ---------------------------------------------------------------------------
    13. 404 page
    --------------------------------------------------------------------------- */
-.err { min-height: calc(100svh - var(--nav-h) - 6rem); padding-top: calc(var(--nav-h) + var(--s-8)); display: grid; place-items: center; text-align: center; }
+.err { min-height: calc(100vh - var(--nav-h) - 6rem); min-height: calc(100svh - var(--nav-h) - 6rem); padding-top: calc(var(--nav-h) + var(--s-8)); display: grid; place-items: center; text-align: center; }
 .err-inner { max-width: 40rem; }
 .err-code { font-family: var(--font-display); font-weight: 800; font-size: clamp(5rem, 3rem + 12vw, 12rem); line-height: 1; letter-spacing: -0.05em; margin: var(--s-4) 0; }
 .err-code b { font-weight: 800; color: var(--accent); }

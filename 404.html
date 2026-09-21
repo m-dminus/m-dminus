@@ -13,8 +13,13 @@
        of this page. Instead every internal reference below is written out with the computed root prefix. -->
   <script>
     (function () {
-      var seg = location.pathname.split('/')[1];
-      var root = seg === 'm-dminus' ? '/m-dminus/' : '/';
+      var repo = 'm-dminus';   // the only place this repository's name needs to change after a rename
+      // Detected from the HOST, not the path: on the github.io preview host every URL genuinely lives under
+      // "/<repo>/", but on the custom domain or the CloudFront deployment the site is served at the root, so a
+      // missing URL that happens to start with "/m-dminus/" (an old preview link, a bot probing the old path)
+      // must NOT be treated as living under that prefix there — that would send every asset and the "back to the
+      // lab" links to another 404.
+      var root = /(^|\.)github\.io$/.test(location.hostname) ? '/' + repo + '/' : '/';
       document.write(
         '<link rel="icon" href="' + root + 'favicon.svg" type="image/svg+xml">'
         + '<link rel="stylesheet" href="' + root + 'assets/fonts/fonts.css">'
