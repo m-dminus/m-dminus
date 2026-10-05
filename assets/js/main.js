@@ -51,13 +51,14 @@
     const number = ext ? ext[1] : v;
     if (v.includes('@')) el.setAttribute('href', 'mailto:' + v);
     else if (isPhone(number)) {
-      const digits = number.replace(/\D/g, '');
-      // A number written with "+" already carries its country code ("+1 773 …", "+44 20 …") and is used as written.
+      // A number written with "+" already carries its country code ("+1 773 …", "+44 20 …", "(+44) 20 …") and is
+      // used as written, less any "(0)" ("+44 (0)20 …"), the national trunk prefix that is not dialled from abroad.
       // Otherwise a leading 00 or 011 is an international dialling prefix, never part of a US number (US area codes
       // start with 2-9), so it is dropped and the country code that follows is kept. What is left without either is
       // a US number: one already written with its country code (11 digits starting with 1) keeps it, a bare 10-digit
       // number gets a 1 prefixed. Writing the same number any of these ways produces the same tel: link.
-      const plus = number.startsWith('+');
+      const plus = /^\(?\+/.test(number);
+      const digits = (plus ? number.replace(/\(0\)/g, '') : number).replace(/\D/g, '');
       const intl = plus ? digits : digits.replace(/^(?:011|00)/, '');
       const withCountry = plus || intl !== digits || (intl.length === 11 && intl[0] === '1') ? intl : '1' + intl;
       el.setAttribute('href', 'tel:+' + withCountry + (ext ? ';ext=' + ext[2] : ''));
