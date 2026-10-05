@@ -413,19 +413,21 @@
       // "Under the strip" and "clear" are judged by the step's heading, not its box: the box starts at the step's
       // top padding (~32px above the heading), so by the box edge a step whose heading is still readable just below
       // the strip already counts as hidden, and the next step counts as clear while only its empty padding is on
-      // screen, which made the strip name a step none of whose text was visible yet.
+      // screen, which made the strip name a step none of whose text was visible yet. A clear step's heading must also
+      // be wholly on screen: on a 320px-tall viewport a heading peeking a few px above the bottom edge otherwise took
+      // over while the previous step's text was still the only readable text.
       let bestClear = -1, bestClearDist = Infinity;
       let bestHidden = -1, bestHiddenTop = -Infinity;
       wfSteps.forEach((s, i) => {
         const r = s.getBoundingClientRect();
         if (r.bottom <= 0 || r.top >= window.innerHeight) return; // off-screen entirely: not a candidate
         const n = $('.wf-name', s);
-        const headTop = n ? n.getBoundingClientRect().top : r.top;
-        if (headTop >= strip) {
-          if (headTop >= window.innerHeight) return;                // heading not on screen yet: nothing to read
+        const h = n ? n.getBoundingClientRect() : r;
+        if (h.top >= strip) {
+          if (h.bottom > window.innerHeight + 1) return;            // heading not fully on screen yet (1px for sub-pixel layout)
           const dist = Math.abs((r.top + r.bottom) / 2 - mid);
           if (dist < bestClearDist) { bestClearDist = dist; bestClear = i; }
-        } else if (headTop > bestHiddenTop) { bestHiddenTop = headTop; bestHidden = i; }
+        } else if (h.top > bestHiddenTop) { bestHiddenTop = h.top; bestHidden = i; }
       });
       const best = bestClear >= 0 ? bestClear : bestHidden;
       if (best >= 0 && best !== lastActive) { activate(best); lastActive = best; }
