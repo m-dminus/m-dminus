@@ -406,6 +406,8 @@
     const pick = () => {
       const strip = stripBottom();
       const mid = (strip ? strip + 16 /* reading gap below the strip */ : 0) + (window.innerHeight - strip) / 2;
+      // What hides a heading at the top: the strip, or on the wide layout (no strip) the fixed nav bar.
+      const cover = strip || (wfNavEl ? Math.max(0, wfNavEl.getBoundingClientRect().bottom) : 0);
       // Nearest-to-mid alone still picks a step whose centre has drifted back up under the strip late in its own
       // scroll range, right before the next step would take over — "nearest" only needs the neighbour to be even
       // further away, which near the strip boundary it briefly isn't. Never choose a step still under the strip
@@ -423,7 +425,7 @@
         if (r.bottom <= 0 || r.top >= window.innerHeight) return; // off-screen entirely: not a candidate
         const n = $('.wf-name', s);
         const h = n ? n.getBoundingClientRect() : r;
-        if (h.top >= strip) {
+        if (h.top >= cover) {
           if (h.bottom > window.innerHeight + 1) return;            // heading not fully on screen yet (1px for sub-pixel layout)
           const dist = Math.abs((r.top + r.bottom) / 2 - mid);
           if (dist < bestClearDist) { bestClearDist = dist; bestClear = i; }
