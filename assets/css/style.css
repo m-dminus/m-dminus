@@ -427,10 +427,10 @@ html.js .hero-title .line:nth-child(3) .word { animation-delay: 180ms; }
 html.js .hero-stage.is-live .hero-fallback { opacity: 0; }
 /* The fallback is a raster <img> of an external SVG whose strokes are faint (some at 16% opacity) light-lavender
    lines meant for the dark ground; an <img>'s own pixels are not recoloured under forced colors the way CSS-driven
-   content is, so on a white Canvas they stay near-invisible. A strong contrast boost is a partial fix — it improves
-   the light-on-white High Contrast theme this was measured against, but a dark-on-black forced-colors theme is not
-   verified — and screen-reader users already get the real content through the image's alt text regardless. */
-@media (forced-colors: active) { .hero-fallback { filter: contrast(3.5) brightness(0.85); } }
+   content is, so on a white Canvas they stay near-invisible. Inverting them turns them dark on a light forced
+   palette. A dark forced palette already shows them light-on-dark, and inverting there would hide them, hence the
+   prefers-color-scheme scope. Screen-reader users get the real content through the image's alt text regardless. */
+@media (forced-colors: active) and (prefers-color-scheme: light) { .hero-fallback { filter: invert(1) contrast(2); } }
 .hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
 html.no-js .hero-canvas { display: none; }
 
@@ -578,12 +578,18 @@ html.js .wf-step:not(.is-active) .wf-body p { color: var(--fg-3); }
   /* On a short landscape viewport (phone rotated, a zoomed-in laptop window) a fixed 10.5rem strip plus the 4.25rem
      nav can leave less than one step's height visible below it. Shrink the strip so roughly 11rem stays free for
      the step list; main.js reads the resulting strip height back to keep its "active step" detection in sync. */
-  .wf-stage-card { aspect-ratio: auto; height: clamp(6rem, calc(100svh - var(--nav-h) - 11.5rem), 10.5rem); max-width: none; background: var(--bg-1); }
+  /* The svh value sits behind @supports rather than after a vh line: it contains var(), so a browser without svh
+     would still accept it at parse time, let it replace the vh line, then drop it to height: auto (a 2px strip). */
+  .wf-stage-card { aspect-ratio: auto; height: clamp(6rem, calc(100vh - var(--nav-h) - 11.5rem), 10.5rem); max-width: none; background: var(--bg-1); }
+  @supports (height: 1svh) { .wf-stage-card { height: clamp(6rem, calc(100svh - var(--nav-h) - 11.5rem), 10.5rem); } }
   .wf-stage-card::after { display: none; }
-  /* At full width the label (bottom-right, up to "Finish & inspect" at 244px in Syne 800) ran across the glyph
-     artwork underneath it, which spans the whole strip. Keep the glyph to the left half so the label's corner
-     stays clear. */
-  .wf-glyph { inset: 4% auto 4% 0; width: 55%; height: auto; }
+  /* At full height the label (bottom-right, up to "Finish & inspect" at 244px in Syne 800, more than half of a
+     phone's strip) ran across the glyph artwork underneath it. Keep the glyph in a band across the top of the strip
+     that ends above the label row (the label sits 1rem from the bottom on a 2rem line), centred so it also clears
+     the index at the top left. An explicit height is needed: with height: auto the square SVG takes its height
+     from its width and overflows the strip, which clips it. On a strip shrunk towards its 6rem minimum, 62% would
+     reach into the label row, so the band also stops 3.25rem above the bottom edge. */
+  .wf-glyph { inset: 4% 0 auto 0; width: 100%; height: min(62%, calc(96% - 3.25rem)); }
   .wf-stage-name { font-size: var(--fs-4); }
   html.no-js .wf-stage { position: relative; top: auto; }
   .wf-step { grid-template-columns: 3rem 1fr; }
@@ -728,7 +734,10 @@ html.js .wf-step:not(.is-active) .wf-body p { color: var(--fg-3); }
 /* ---------------------------------------------------------------------------
    13. 404 page
    --------------------------------------------------------------------------- */
-.err { min-height: calc(100vh - var(--nav-h) - 6rem); min-height: calc(100svh - var(--nav-h) - 6rem); padding-top: calc(var(--nav-h) + var(--s-8)); display: grid; place-items: center; text-align: center; }
+.err { min-height: calc(100vh - var(--nav-h) - 6rem); padding-top: calc(var(--nav-h) + var(--s-8)); display: grid; place-items: center; text-align: center; }
+/* Behind @supports, not as a second declaration: with var() in it, a browser without svh would accept the svh line
+   at parse time, drop the vh one, then discard the svh one too, leaving min-height 0. */
+@supports (min-height: 1svh) { .err { min-height: calc(100svh - var(--nav-h) - 6rem); } }
 .err-inner { max-width: 40rem; }
 .err-code { font-family: var(--font-display); font-weight: 800; font-size: clamp(5rem, 3rem + 12vw, 12rem); line-height: 1; letter-spacing: -0.05em; margin: var(--s-4) 0; }
 .err-code b { font-weight: 800; color: var(--accent); }
@@ -752,6 +761,9 @@ html.motion-off .ticker-track,
 html.motion-off .wf-glyph * { animation: none !important; }
 html.motion-off .hero-stage .hero-fallback { opacity: 1; }
 html.motion-off .hero-canvas { opacity: 0; }
+/* main.js stops the animation when forced colors turns on, but stopping does not clear the canvas: hide the last
+   frame the same way, or it stays drawn over the fallback. */
+@media (forced-colors: active) { .hero-canvas { opacity: 0; } }
 
 /* ---------------------------------------------------------------------------
    15. Print
@@ -763,7 +775,7 @@ html.motion-off .hero-canvas { opacity: 0; }
 @media print {
   html { scroll-behavior: auto; }
   :root {
-    --bg: #fff; --fg: #111; --fg-2: #333; --fg-3: #555; --accent: #8a5a1e;
+    --bg: #fff; --bg-1: #fff; --bg-2: #fff; --bg-3: #eee; --fg: #111; --fg-2: #333; --fg-3: #555; --accent: #8a5a1e;
     --line: #ccc; --line-2: #999; --line-3: #888;
   }
   html, body { background: #fff; }
@@ -780,6 +792,21 @@ html.motion-off .hero-canvas { opacity: 0; }
   .nav-menu { position: static; transform: none; opacity: 1; visibility: visible; background: none; border: 0; padding: 0; max-height: none; }
   .nav-toggle { display: none; }
   .nav-inner > .btn--sm { display: none; }
+  /* Letter and A4 portrait pages are 816px and 794px wide (less with margins), inside the 980px breakpoint where
+     the menu is a full-height column (an overlay on screen). Printed static, that column was centred in the 68px
+     bar and ran off the top of the page; lay it out as the no-JavaScript header does instead, as one wrapping row. */
+  @media (max-width: 980px) {
+    .nav { height: auto; }
+    .nav-inner { flex-wrap: wrap; padding-block: var(--s-3); }
+    .nav-menu { flex-direction: row; flex-wrap: wrap; gap: var(--s-2) var(--s-4); }
+    .nav-links { flex-direction: row; flex-wrap: wrap; gap: var(--s-1); }
+    .nav-link { min-height: 2.5rem; font-size: var(--fs-2); padding: 0 0.6rem; }
+  }
+
+  /* Whether the browser prints backgrounds is the reader's choice and CSS cannot tell which: an amber fill under
+     dark text is 3.2:1 when it prints, and white text on paper is unreadable when it does not. An outlined button
+     reads the same either way. */
+  .btn--primary { background: none; color: var(--fg); border-color: var(--line-2); box-shadow: none; }
 
   /* Hero: the canvas only ever holds whatever animation frame was current, and the HUD readouts describe that
      animation, not the business — neither belongs on paper. Show the static fallback illustration instead. */
@@ -806,10 +833,14 @@ html.motion-off .hero-canvas { opacity: 0; }
   .field input, .field select, .field textarea { border-color: var(--line-2); background: none; }
 
   .card, .stack-item, .appliance, .step, .wf-step, .practices-panel { break-inside: avoid; }
+  /* The screen section padding (up to ~9.5rem top and bottom) is far more than paper needs, and in landscape a
+     section's bottom padding could spill alone onto an otherwise blank page before the next section. */
+  .sec { padding-block: 2rem; }
 
   /* .practices-panel::before draws a thin gradient ring with a CSS mask (mask-composite: exclude). Chromium's print
      output does not reproduce that compositing without background graphics enabled and instead paints the pseudo-
      element as a solid black box over the "For practices" panel, blanking the steps underneath it. Purely
-     decorative on screen; drop it for print rather than have it blank the panel's own content. */
-  .practices-panel::before { display: none; }
+     decorative on screen; drop it for print rather than have it blank the panel's own content. Its ::after glow
+     (a radial-gradient circle) prints the same way, as an opaque white disc over the steps column in landscape. */
+  .practices-panel::before, .practices-panel::after { display: none; }
 }

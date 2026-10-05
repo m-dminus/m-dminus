@@ -18,8 +18,9 @@
       // "/<repo>/", but on the custom domain or the CloudFront deployment the site is served at the root, so a
       // missing URL that happens to start with "/m-dminus/" (an old preview link, a bot probing the old path)
       // must NOT be treated as living under that prefix there — that would send every asset and the "back to the
-      // lab" links to another 404.
-      var root = /(^|\.)github\.io$/.test(location.hostname) ? '/' + repo + '/' : '/';
+      // lab" links to another 404. The optional final "\." matches a hostname typed with its trailing dot
+      // ("m-dminus.github.io."), which the browser keeps in location.hostname.
+      var root = /(^|\.)github\.io\.?$/.test(location.hostname) ? '/' + repo + '/' : '/';
       document.write(
         '<link rel="icon" href="' + root + 'favicon.svg" type="image/svg+xml">'
         + '<link rel="stylesheet" href="' + root + 'assets/fonts/fonts.css">'
@@ -30,8 +31,10 @@
   </script>
   <!-- Root-absolute paths: correct once the custom domain is attached (site root "/") and for the AWS/CloudFront
        deployment (also site root). During the interim GitHub Pages project preview at "/m-dminus/" a visitor who
-       reaches a nested missing URL (e.g. /m-dminus/a/b/) with JavaScript disabled will not get these assets, since a
-       static file cannot detect that prefix without running code; the script above handles that case instead. -->
+       reaches ANY not-found page there (/m-dminus/nope as much as /m-dminus/a/b/, or /m-dminus/404.html itself) with
+       JavaScript disabled gets neither these assets nor working home links: the brand, "Start a case", "Back to the
+       lab" and footer "maskatech.com" links below point at the github.io host root, not at /m-dminus/. A static file
+       cannot know that prefix without running code; the scripts on this page handle it whenever JavaScript runs. -->
   <noscript>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/assets/fonts/fonts.css">

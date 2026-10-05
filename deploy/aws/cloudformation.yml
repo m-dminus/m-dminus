@@ -13,7 +13,9 @@ Parameters:
     Type: String
     Default: "true"
     AllowedValues: ["true", "false"]
-    Description: Also serve www.<DomainName> and redirect it to the apex domain.
+    Description: >-
+      Also serve www.<DomainName>. With HostedZoneId set, www is redirected to the apex domain; with DNS elsewhere,
+      www is served as-is (see deploy/aws/README.md).
   HostedZoneId:
     Type: String
     Default: ""

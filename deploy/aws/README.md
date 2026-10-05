@@ -65,7 +65,15 @@ Finally, at GoDaddy point `www` (CNAME) at the CloudFront domain the script prin
 workaround). Remove the existing forwarding rule that currently frames theteethboutique.com first. The stack only
 redirects `www` back to the apex when Route 53 hosts the zone (where the apex genuinely resolves to this
 distribution); with DNS kept at GoDaddy it does not, so the apex→`www` forward above is the one hop a visitor takes,
-not a loop.
+not a loop. This option needs `INCLUDE_WWW` left at its default `true` and a certificate covering both names: `www` is
+the only name GoDaddy can point at CloudFront, and with `INCLUDE_WWW=false` the stack serves the apex alone, which
+GoDaddy DNS cannot reach. Make the apex forward permanent (301) and without masking.
+
+On this option the site is served from `www.maskatech.com` and the apex is only a redirect, but the site names the
+apex as its address: the canonical link, `og:url` and JSON-LD `url` in `index.html`, the `<loc>` in `sitemap.xml` and
+the `Sitemap:` line in `robots.txt` all say `https://maskatech.com/`. Either accept that those addresses redirect one
+hop to `www`, or, if you settle on this option, change them to `https://www.maskatech.com/`. Change them only for
+this option: GitHub Pages and the Route 53 option serve the apex, where the current addresses are correct.
 
 ## What the deploy uploads
 

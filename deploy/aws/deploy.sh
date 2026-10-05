@@ -13,7 +13,7 @@
 #   STACK           CloudFormation stack name        (default: maskatech-site)
 #   AWS_REGION      Region for the stack             (default: us-east-1 — required when the stack creates the certificate)
 #   DOMAIN          Apex domain                      (default: maskatech.com)
-#   INCLUDE_WWW     Also serve www. and redirect it  (default: true)
+#   INCLUDE_WWW     Also serve www. (redirected to the apex only with HOSTED_ZONE_ID)  (default: true)
 set -euo pipefail
 
 STACK="${STACK:-maskatech-site}"
@@ -55,7 +55,7 @@ EXCLUDE=(--exclude ".git/*" --exclude ".github/*" --exclude "deploy/*" --exclude
          --exclude "og.html" --exclude ".gitignore" --exclude ".nojekyll" --exclude ".DS_Store" --exclude "*/.DS_Store"
          # aws s3 sync walks the working directory, not the git index, so anything .gitignore expects to appear
          # there locally (a Node tool run in this folder before deploying, an editor log) needs its own exclusion.
-         --exclude "node_modules/*" --exclude "*.log" --exclude "Thumbs.db" --exclude "*/Thumbs.db")
+         --exclude "node_modules/*" --exclude "*/node_modules/*" --exclude "*.log" --exclude "Thumbs.db" --exclude "*/Thumbs.db")
 
 # 1) Assets (fonts, images, CSS, JS): cached for a day. --delete removes assets that no longer exist.
 aws s3 sync . "s3://$BUCKET" --region "$REGION" --delete "${EXCLUDE[@]}" \
@@ -65,11 +65,15 @@ aws s3 sync . "s3://$BUCKET" --region "$REGION" --delete "${EXCLUDE[@]}" \
 # 2) Pages and metadata: always revalidated, so a new deploy shows up immediately after the invalidation below.
 # The EXCLUDE array comes last: aws s3 sync applies filters in order and a later filter wins, so putting it after
 # --include "*.html" keeps og.html (matched by both --exclude "og.html" and --include "*.html") excluded rather than
-# re-included. --delete also removes it if an earlier version of this script already published it.
+# re-included. --delete removes pages that no longer exist locally, but it cannot remove an og.html that an earlier
+# version of this script published: aws s3 sync applies the same filters to the bucket listing, so an excluded key is
+# never a delete candidate. That copy is removed explicitly instead (deleting a missing key succeeds, so this is safe
+# to re-run).
 aws s3 sync . "s3://$BUCKET" --region "$REGION" --delete \
   --exclude "*" --include "*.html" --include "*.xml" --include "*.txt" --include "*.webmanifest" \
   "${EXCLUDE[@]}" \
   --cache-control "no-cache"
+aws s3 rm "s3://$BUCKET/og.html" --region "$REGION" >/dev/null
 
 # 3) Content types the CLI does not know on every platform
 aws s3 cp "s3://$BUCKET/site.webmanifest" "s3://$BUCKET/site.webmanifest" --region "$REGION" \
@@ -88,9 +92,13 @@ echo "  CloudFront URL : https://$CF_DOMAIN/"
 echo "  Site URL       : $SITE_URL"
 if [ -n "$HOSTED_ZONE_ID" ]; then
   echo "  DNS            : A/AAAA alias records were created in Route 53 zone $HOSTED_ZONE_ID"
-elif [ -n "$CERT_ARN" ]; then
+elif [ -n "$CERT_ARN" ] && [ "$INCLUDE_WWW" = "true" ]; then
   echo "  DNS            : at GoDaddy, point www.$DOMAIN (CNAME) at $CF_DOMAIN and forward the apex $DOMAIN to https://www.$DOMAIN"
   echo "                   (GoDaddy cannot alias an apex domain to CloudFront directly — see deploy/aws/README.md)"
+elif [ -n "$CERT_ARN" ]; then
+  echo "  DNS            : this stack serves only the apex $DOMAIN (INCLUDE_WWW=$INCLUDE_WWW), and GoDaddy DNS cannot point an"
+  echo "                   apex domain at CloudFront. Re-run with INCLUDE_WWW=true (and a certificate that also covers"
+  echo "                   www.$DOMAIN), or move DNS to Route 53 and re-run with HOSTED_ZONE_ID — see deploy/aws/README.md"
 else
   echo "  DNS            : none needed — share the CloudFront URL, or re-run with HOSTED_ZONE_ID / CERT_ARN for $DOMAIN"
 fi

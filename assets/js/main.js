@@ -36,6 +36,9 @@
   // A phone number, written any common US way ("(773) 857-2290", "773.857.2290", "1-773-857-2290", "+1 773 857 2290"):
   // digits plus the usual separators, with at least 7 digits so a stray short numeric string isn't misread as one.
   const isPhone = (v) => /^[\d\s().+-]+$/.test(v) && (v.match(/\d/g) || []).length >= 7;
+  // An extension after the number ("773 857 2290 ext 3", "773-857-2290 x12") is split off first and kept as ;ext=N
+  // (RFC 3966), so its digits are not folded into the number itself.
+  const phoneExt = /^(.*?\d)[\s,]*(?:ext\.?|extension|x)\s*(\d{1,6})$/i;
   $$('[data-cfg]').forEach((el) => {
     const v = getPath(el.dataset.cfg);
     if (typeof v === 'string' && v.trim()) el.textContent = v.trim();
@@ -44,13 +47,20 @@
     const raw = getPath(el.dataset.cfgLink);
     if (typeof raw !== 'string' || !raw.trim()) return;
     const v = raw.trim();
+    const ext = v.match(phoneExt);
+    const number = ext ? ext[1] : v;
     if (v.includes('@')) el.setAttribute('href', 'mailto:' + v);
-    else if (isPhone(v)) {
-      const digits = v.replace(/\D/g, '');
-      // A number already written with its country code (11 digits starting with 1) keeps it; a bare 10-digit US
-      // number gets a 1 prefixed. Writing it either way in site-config.js now produces the same tel: link.
-      const withCountry = digits.length === 11 && digits[0] === '1' ? digits : '1' + digits;
-      el.setAttribute('href', 'tel:+' + withCountry);
+    else if (isPhone(number)) {
+      const digits = number.replace(/\D/g, '');
+      // A number written with "+" already carries its country code ("+1 773 …", "+44 20 …") and is used as written.
+      // Otherwise a leading 00 or 011 is an international dialling prefix, never part of a US number (US area codes
+      // start with 2-9), so it is dropped and the country code that follows is kept. What is left without either is
+      // a US number: one already written with its country code (11 digits starting with 1) keeps it, a bare 10-digit
+      // number gets a 1 prefixed. Writing the same number any of these ways produces the same tel: link.
+      const plus = number.startsWith('+');
+      const intl = plus ? digits : digits.replace(/^(?:011|00)/, '');
+      const withCountry = plus || intl !== digits || (intl.length === 11 && intl[0] === '1') ? intl : '1' + intl;
+      el.setAttribute('href', 'tel:+' + withCountry + (ext ? ';ext=' + ext[2] : ''));
     }
     else el.setAttribute('href', v);
   });
@@ -399,15 +409,22 @@
       // scroll range, right before the next step would take over — "nearest" only needs the neighbour to be even
       // further away, which near the strip boundary it briefly isn't. Never choose a step still under the strip
       // while a step clear of it exists; only fall back to "least hidden" when nothing is clear yet (section entry).
+      // "Under the strip" and "clear" are judged by the step's heading, not its box: the box starts at the step's
+      // top padding (~32px above the heading), so by the box edge a step whose heading is still readable just below
+      // the strip already counts as hidden, and the next step counts as clear while only its empty padding is on
+      // screen, which made the strip name a step none of whose text was visible yet.
       let bestClear = -1, bestClearDist = Infinity;
       let bestHidden = -1, bestHiddenTop = -Infinity;
       wfSteps.forEach((s, i) => {
         const r = s.getBoundingClientRect();
         if (r.bottom <= 0 || r.top >= window.innerHeight) return; // off-screen entirely: not a candidate
-        if (r.top >= strip) {
+        const n = $('.wf-name', s);
+        const headTop = n ? n.getBoundingClientRect().top : r.top;
+        if (headTop >= strip) {
+          if (headTop >= window.innerHeight) return;                // heading not on screen yet: nothing to read
           const dist = Math.abs((r.top + r.bottom) / 2 - mid);
           if (dist < bestClearDist) { bestClearDist = dist; bestClear = i; }
-        } else if (r.top > bestHiddenTop) { bestHiddenTop = r.top; bestHidden = i; }
+        } else if (headTop > bestHiddenTop) { bestHiddenTop = headTop; bestHidden = i; }
       });
       const best = bestClear >= 0 ? bestClear : bestHidden;
       if (best >= 0 && best !== lastActive) { activate(best); lastActive = best; }
