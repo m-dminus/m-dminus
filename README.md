@@ -24,7 +24,7 @@ fallback. Every readout on the page describes that animation only; there are no 
 | `og.html` | 1200×630 source card used to render `assets/img/og-image.jpg` (not published) |
 | `assets/css/style.css` | All styles (CSS custom properties, no build step) |
 | `assets/js/site-config.js` | **Edit contact details here** (email, sister-practice block) |
-| `assets/js/main.js` | Behaviour (progressive enhancement; the site works with JavaScript off) |
+| `assets/js/main.js` | Behaviour (progressive enhancement; the site works with JavaScript off, with one interim exception described under *Accessibility and motion*) |
 | `assets/fonts/` | Self-hosted web fonts (Syne, Inter Tight, Geist Mono; `fonts.css` + `.woff2`) with their SIL OFL licence texts (`OFL-*.txt`). No third-party font requests. |
 | `assets/img/` | `appliance-layers.svg` (hero fallback, generated from the same geometry as the canvas), `logo.svg` (wordmark outlined as paths, no font dependency), `og-image.jpg` (rendered from `og.html`) |
 | `favicon.svg` | Site icon (root, referenced by the pages and the manifest) |
@@ -63,15 +63,15 @@ python3 -m http.server 8080
    (also shown in **Settings → Pages**). Every asset path in `index.html` (and in the stylesheet and the manifest)
    is relative, so the page works at that sub-path exactly as it will at the root of maskatech.com. Two things do
    *not* work at that sub-path. First, `404.html` uses root-absolute paths (it is served for missing URLs at any
-   depth, where relative paths would break), and its inline scripts rewrite them to the `/m-dminus/` prefix when
-   JavaScript runs; with JavaScript off, any not-found page on the preview loads no stylesheet and its home links go
-   to `https://m-dminus.github.io/`, not to the site. On the custom domain and on AWS, both served from the root, it
-   is complete either way. Second, `robots.txt` is only honoured by crawlers when fetched from the origin's true root
-   (`https://m-dminus.github.io/robots.txt`, a different, unrelated site), so `robots.txt`'s `Sitemap:` line — and
-   `sitemap.xml` itself — is not reachable by a crawler during this interim. There is no static-file fix for either;
-   both are properties of serving from a sub-path, not bugs in these files, and both resolve themselves the moment
-   the custom domain is attached below (crawler indexing is unlikely to matter yet regardless, since the interim page
-   has no inbound links to be found by).
+   depth, where relative paths would break); when JavaScript runs, its inline scripts load the assets and point the
+   home links at the `/m-dminus/` prefix instead. With JavaScript off, any not-found page on the preview loads no
+   stylesheet and its home links go to `https://m-dminus.github.io/`, not to the site. On the custom domain and on
+   AWS, both served from the root, it is complete either way. Second, `robots.txt` is only honoured by crawlers when
+   fetched from the origin's true root (`https://m-dminus.github.io/robots.txt`, a different, unrelated site), so
+   `robots.txt`'s `Sitemap:` line — and `sitemap.xml` itself — is not reachable by a crawler during this interim.
+   There is no static-file fix for either; both are properties of serving from a sub-path, not bugs in these files,
+   and both resolve themselves the moment the custom domain is attached below (crawler indexing is unlikely to matter
+   yet regardless, since the interim page has no inbound links to be found by).
 
 ## Deploy to AWS instead (or as well)
 

@@ -7,7 +7,7 @@ is public; CloudFront reads it through Origin Access Control. Expected cost for 
 
 | File | Purpose |
 | --- | --- |
-| `cloudformation.yml` | The infrastructure: bucket, bucket policy, Origin Access Control, CloudFront distribution, www→apex redirect function, optional ACM certificate and Route 53 records |
+| `cloudformation.yml` | The infrastructure: bucket, bucket policy, Origin Access Control, CloudFront distribution, optional ACM certificate, and, with a Route 53 zone, the DNS records and (when www is included) a www→apex redirect function |
 | `deploy.sh` | One command: creates/updates the stack, uploads the site with the right cache headers and content types, invalidates the CloudFront cache |
 | `github-deploy-role-policy.json` | IAM permissions for the GitHub Actions role (only needed for the AWS workflow) |
 | `../../.github/workflows/deploy-aws.yml` | GitHub Actions workflow that runs `deploy.sh` from the Actions tab |
@@ -70,10 +70,11 @@ the only name GoDaddy can point at CloudFront, and with `INCLUDE_WWW=false` the 
 GoDaddy DNS cannot reach. Make the apex forward permanent (301) and without masking.
 
 On this option the site is served from `www.maskatech.com` and the apex is only a redirect, but the site names the
-apex as its address: the canonical link, `og:url` and JSON-LD `url` in `index.html`, the `<loc>` in `sitemap.xml` and
-the `Sitemap:` line in `robots.txt` all say `https://maskatech.com/`. Either accept that those addresses redirect one
-hop to `www`, or, if you settle on this option, change them to `https://www.maskatech.com/`. Change them only for
-this option: GitHub Pages and the Route 53 option serve the apex, where the current addresses are correct.
+apex as its address: the canonical link, `og:url`, `og:image`, `twitter:image` and the JSON-LD `url` and `logo` in
+`index.html`, the `<loc>` in `sitemap.xml` and the `Sitemap:` line in `robots.txt` all start with
+`https://maskatech.com/`. Either accept that those addresses redirect one hop to `www`, or, if you settle on this
+option, change that prefix to `https://www.maskatech.com/` in all of them. Change them only for this option: GitHub
+Pages and the Route 53 option serve the apex, where the current addresses are correct.
 
 ## What the deploy uploads
 
