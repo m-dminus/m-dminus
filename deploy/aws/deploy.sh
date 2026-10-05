@@ -51,7 +51,7 @@ CF_DOMAIN="$(output DistributionDomainName)"
 
 echo "==> Uploading the site to s3://$BUCKET"
 # Files that belong to the repository, not to the published site
-EXCLUDE=(--exclude ".git/*" --exclude ".github/*" --exclude "deploy/*" --exclude "README.md" --exclude "CONTENT-REVIEW.md"
+EXCLUDE=(--exclude ".git/*" --exclude ".github/*" --exclude ".claude/*" --exclude "CLAUDE.md" --exclude ".mcp.json" --exclude "deploy/*" --exclude "README.md" --exclude "CONTENT-REVIEW.md"
          --exclude "og.html" --exclude ".gitignore" --exclude ".nojekyll" --exclude ".DS_Store" --exclude "*/.DS_Store")
 
 # 1) Assets (fonts, images, CSS, JS): cached for a day. --delete removes assets that no longer exist.

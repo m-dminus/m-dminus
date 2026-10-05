@@ -33,6 +33,7 @@ fallback. Every readout on the page describes that animation only; there are no 
 | `.github/workflows/pages.yml` | Deploys the site to GitHub Pages on every push to `main`; the README, this review, `og.html`, `deploy/` and the dotfiles are left out of the published site |
 | `.github/workflows/deploy-aws.yml` | Publishes the site to AWS (S3 + CloudFront) from the Actions tab |
 | `deploy/aws/` | CloudFormation template, one-command deploy script and instructions for AWS — see `deploy/aws/README.md` |
+| `CLAUDE.md`, `.mcp.json`, `.claude/skills/` | AWS Agent Toolkit setup for AI coding agents (rules, AWS MCP server, AWS skills); kept out of the published site — see `deploy/aws/AGENT-TOOLKIT.md` |
 | `.nojekyll`, `.gitignore` | Tells GitHub Pages not to run Jekyll; ignores OS/editor files |
 
 There is no build step and no framework. Every file is plain HTML, CSS and JavaScript.
