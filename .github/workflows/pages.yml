@@ -1,6 +1,9 @@
 # Deploys the static site at the repository root to GitHub Pages.
-# Every push to main deploys. The workflow enables Pages itself on first run; if that step is refused,
-# set Settings → Pages → Source: "GitHub Actions" once and re-run it.
+# Every push to main deploys. One-time setup: Settings → Pages → Source: "GitHub Actions" (see README.md).
+# actions/configure-pages's own enablement:true option cannot do this for you with the default GITHUB_TOKEN — its
+# "Create a GitHub Pages site" call needs Administration: write, which GITHUB_TOKEN cannot be granted via the
+# permissions: key below — so it is deliberately not set here; without it the first run on a repository where
+# Pages isn't enabled yet fails at "Configure Pages" instead of silently doing nothing useful.
 name: Deploy site to GitHub Pages
 
 on:
@@ -30,8 +33,6 @@ jobs:
         run: rm -rf README.md CONTENT-REVIEW.md og.html .gitignore .github deploy
       - name: Configure Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true   # turn Pages on for the repository if it is not enabled yet
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:

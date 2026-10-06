@@ -24,7 +24,8 @@ earlier build verified it on 2026-09-06. No clinic tagline is used for that reas
 
 1. **cases@maskatech.com** — the mailbox (or a forward) must exist. It is the only contact channel on the site. It appears
    in `assets/js/site-config.js` (`contactEmail`) and, so the site works without JavaScript, literally in `index.html`
-   (JSON-LD `email`, Appliances note, For practices, Contact heading link, form `action`, footer) and `404.html`.
+   (JSON-LD `email`, Appliances note, For practices, Contact heading link, form `action`, the no-JavaScript form note
+   in `<noscript>` next to the Prepare email button, footer) and `404.html`.
    `main.js` holds no copy of its own: the JavaScript form handler reads the address from the form `action`, which the
    config overrides when it loads. Change all of these places together.
 2. **"AI-assisted design where it earns its place"** (Capabilities 02) — moderate evidence only (an AI design workflow was
@@ -47,7 +48,7 @@ earlier build verified it on 2026-09-06. No clinic tagline is used for that reas
 | Meta description: "… Intraoral scan in, precision appliance out: night guards and clear retainers, digitally designed for the individual case and fabricated in-house." | Case emails (products, scan intake); printer thread (in-house fabrication); "precision" generic |
 | OG/Twitter description: "Built from the scan up. Night guards and clear retainers, digitally designed for the individual case." | Case emails; headline is a slogan |
 | Canonical / og:url / sitemap `https://maskatech.com/` | RDAP: maskatech.com registered to the owner via GoDaddy |
-| JSON-LD: name, url, email cases@maskatech.com, description "Digital dental laboratory. Night guards and clear retainers, digitally designed for dental practices.", logo `assets/img/logo.svg` | As above; email = owner-confirm 1 |
+| JSON-LD: name, url, email cases@maskatech.com, description "Digital dental laboratory. Night guards and clear retainers, digitally designed for dental practices.", logo `favicon.svg` (the square mark, declared 512×512; the 286×44 wordmark `assets/img/logo.svg` is below Google's 112×112 minimum) | As above; email = owner-confirm 1 |
 | `site.webmanifest` name / short_name / description | As above |
 
 ## Hero
@@ -121,6 +122,7 @@ earlier build verified it on 2026-09-06. No clinic tagline is used for that reas
 | "Or write directly — cases@maskatech.com" | Owner-confirm 1 |
 | Select options | Owner-confirm 5 |
 | Placeholder "Arch and anything the design should account for."; "Submitting opens your email app with the case details prefilled."; JS status "Opening your email app with the case details."; generated subject "New case — <appliance>" and body lines Name / Practice / Email / Appliance / Notes | Site mechanics |
+| No-JavaScript note (`<noscript>`): "If a field contains "&", writing to cases@maskatech.com directly avoids it landing on its own line in the email." | Site mechanics (Chromium's mailto form encoding); address = owner-confirm 1 |
 
 ## Footer
 
@@ -153,7 +155,7 @@ earlier build verified it on 2026-09-06. No clinic tagline is used for that reas
 | Domain status table (maskatech.com dates and registrar; maskatech.net; maskatechlabs.com not registered) | Verisign RDAP + GoDaddy lookup, 2026-09-18 |
 | "As of 2026-09-18 it forwards (in a frame) to theteethboutique.com" | Direct HTTPS fetch of https://maskatech.com |
 | GitHub Pages A / AAAA / CNAME values; "Enforce HTTPS can take up to 24 hours"; no CNAME file with GitHub Actions; custom 404 behaviour | GitHub Docs (cited in the README) |
-| "the site works with JavaScript off"; "No third-party font requests"; "no build step"; "every asset path is relative" | Repo inspection (no `href`/`src`/`url()` starts with `/` or names an external host other than theteethboutique.com; no package manifest or bundler) and a JavaScript-disabled Playwright render |
+| "the site works with JavaScript off"; "No third-party font requests"; "no build step"; "every asset path in `index.html` is relative" | Repo inspection (outside `404.html`, no `href`/`src`/`url()` starts with `/`; no `href`/`src`/`url()` names an external host other than theteethboutique.com; no package manifest or bundler) and a JavaScript-disabled Playwright render. `404.html` is the deliberate exception: it has seven root-absolute references (three `<noscript>` asset links and four home links). On the github.io preview its inline scripts write prefixed copies of the asset links and rewrite the four home links, so without JavaScript it is complete only on a root-served deployment |
 
 ## Brand and company names in the repository
 

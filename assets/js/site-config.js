@@ -9,6 +9,9 @@ window.MASKATECH_CONFIG = {
     descriptor: "General dentistry · Chicago",
     url: "https://www.theteethboutique.com",
     address: "1933 W Irving Park Rd, Suite 1, Chicago, IL 60613",
+    // A US number in any of the usual forms: "(773) 857-2290", "773.857.2290", "1-773-857-2290",
+    // "+1 773 857 2290", optionally followed by an extension ("ext 3" or "x3"). A number outside the US
+    // needs its country code, after a "+" ("+44 20 7946 0958") or an international prefix ("011 44 …").
     phone: "(773) 857-2290"
   }
 };

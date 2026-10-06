@@ -33,21 +33,42 @@
      data-cfg-link="path.to.value" → href (mailto: for emails, tel: for phones)
      --------------------------------------------------------------------------- */
   const getPath = (path) => path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : undefined), cfg);
-  const isPhone = (v) => /^[\d\s()+-]+$/.test(v);
+  // A phone number, written any common US way ("(773) 857-2290", "773.857.2290", "1-773-857-2290", "+1 773 857 2290"):
+  // digits plus the usual separators, with at least 7 digits so a stray short numeric string isn't misread as one.
+  const isPhone = (v) => /^[\d\s().+-]+$/.test(v) && (v.match(/\d/g) || []).length >= 7;
+  // An extension after the number ("773 857 2290 ext 3", "773-857-2290 x12") is split off first and kept as ;ext=N
+  // (RFC 3966), so its digits are not folded into the number itself.
+  const phoneExt = /^(.*?\d)[\s,]*(?:ext\.?|extension|x)\s*(\d{1,6})$/i;
   $$('[data-cfg]').forEach((el) => {
     const v = getPath(el.dataset.cfg);
-    if (typeof v === 'string' && v.trim()) el.textContent = v;
+    if (typeof v === 'string' && v.trim()) el.textContent = v.trim();
   });
   $$('[data-cfg-link]').forEach((el) => {
-    const v = getPath(el.dataset.cfgLink);
-    if (typeof v !== 'string' || !v.trim()) return;
+    const raw = getPath(el.dataset.cfgLink);
+    if (typeof raw !== 'string' || !raw.trim()) return;
+    const v = raw.trim();
+    const ext = v.match(phoneExt);
+    const number = ext ? ext[1] : v;
     if (v.includes('@')) el.setAttribute('href', 'mailto:' + v);
-    else if (isPhone(v)) el.setAttribute('href', 'tel:+1' + v.replace(/\D/g, ''));
+    else if (isPhone(number)) {
+      // A number written with "+" already carries its country code ("+1 773 …", "+44 20 …", "(+44) 20 …") and is
+      // used as written, less any "(0)" ("+44 (0)20 …"), the national trunk prefix that is not dialled from abroad.
+      // Otherwise a leading 00 or 011 is an international dialling prefix, never part of a US number (US area codes
+      // start with 2-9), so it is dropped and the country code that follows is kept. What is left without either is
+      // a US number: one already written with its country code (11 digits starting with 1) keeps it, a bare 10-digit
+      // number gets a 1 prefixed. Writing the same number any of these ways produces the same tel: link.
+      const plus = /^\(?\+/.test(number);
+      const digits = (plus ? number.replace(/\(0\)/g, '') : number).replace(/\D/g, '');
+      const intl = plus ? digits : digits.replace(/^(?:011|00)/, '');
+      const withCountry = plus || intl !== digits || (intl.length === 11 && intl[0] === '1') ? intl : '1' + intl;
+      el.setAttribute('href', 'tel:+' + withCountry + (ext ? ';ext=' + ext[2] : ''));
+    }
     else el.setAttribute('href', v);
   });
   const form = $('#case-form');
-  if (form && typeof cfg.contactEmail === 'string' && cfg.contactEmail.includes('@')) {
-    form.setAttribute('action', 'mailto:' + cfg.contactEmail);
+  const contactEmail = typeof cfg.contactEmail === 'string' ? cfg.contactEmail.trim() : '';
+  if (form && contactEmail.includes('@')) {
+    form.setAttribute('action', 'mailto:' + contactEmail);
   }
 
   /* ---------------------------------------------------------------------------
@@ -93,7 +114,7 @@
       }
     });
     doc.addEventListener('click', (e) => { if (nav.classList.contains('is-open') && !nav.contains(e.target)) setMenu(false); });
-    window.addEventListener('resize', () => { if (window.innerWidth > 900 && nav.classList.contains('is-open')) setMenu(false); }, { passive: true });
+    window.addEventListener('resize', () => { if (window.innerWidth > 980 && nav.classList.contains('is-open')) setMenu(false); }, { passive: true });  // matches the @media (max-width: 980px) breakpoint in style.css
   }
   // Active link follows the section in view
   const links = $$('.nav-link');
@@ -309,7 +330,17 @@
     const start = () => { if (running || !visible) return; running = true; t0 = 0; stage.classList.add('is-live'); resize(); raf = requestAnimationFrame(frame); };
     const stop = () => { running = false; cancelAnimationFrame(raf); };
     const motionOff = () => root.classList.contains('motion-off');
-    const apply = () => { if (motionOff()) { stop(); stage.classList.remove('is-live'); } else start(); };
+    // The canvas is always drawn with the dark-theme palette (rgba literals below), which the user agent does not
+    // recolour the way it recolours CSS. Under forced colors (e.g. Windows High Contrast) those low-contrast
+    // colours land on a Canvas-coloured background and the animation becomes unreadable while the HUD readouts keep
+    // reporting a layer count and orbit angle for something the visitor cannot see. Keep the static SVG fallback
+    // (and its alt text) showing instead, the same as under reduced motion.
+    const forcedColorsMQ = window.matchMedia('(forced-colors: active)');
+    const forcedColors = () => forcedColorsMQ.matches;
+    // Single source of truth for "is the animation allowed to run right now" — every call site below goes through
+    // this (not just motionOff()) so forced colors is respected regardless of which event asks for a restart.
+    const allowedToRun = () => !motionOff() && !forcedColors();
+    const apply = () => { if (allowedToRun()) start(); else { stop(); stage.classList.remove('is-live'); } };
 
     // Motion toggle (also respects the OS reduced-motion setting on boot)
     const setMotion = (on, remember) => {
@@ -319,14 +350,21 @@
       apply();
     };
     if (motionBtn) motionBtn.addEventListener('click', () => setMotion(motionOff(), true));
-    onMQ(reduceMQ, () => setMotion(!prefersReduced()));
-    let stored = null; try { stored = localStorage.getItem('maskatech-motion'); } catch (err) { /* storage unavailable */ }
+    // The OS setting always wins when it asks for reduced motion; short of that, a remembered "off" also wins.
+    // Read fresh each time (not just once at boot) so a later OS-setting change still honours a stored "off"
+    // instead of unconditionally turning the animation back on underneath it.
+    const resolveMotion = () => {
+      let stored = null; try { stored = localStorage.getItem('maskatech-motion'); } catch (err) { /* storage unavailable */ }
+      return prefersReduced() ? false : stored !== 'off';
+    };
+    onMQ(reduceMQ, () => setMotion(resolveMotion()));
+    onMQ(forcedColorsMQ, apply);
 
     // Pause when off-screen or the tab is hidden
     if ('IntersectionObserver' in window) {
-      new IntersectionObserver((entries) => { visible = entries[0].isIntersecting; if (visible) { if (!motionOff()) start(); } else stop(); }, { threshold: 0.05 }).observe(stage);
+      new IntersectionObserver((entries) => { visible = entries[0].isIntersecting; if (visible) { if (allowedToRun()) start(); } else stop(); }, { threshold: 0.05 }).observe(stage);
     }
-    doc.addEventListener('visibilitychange', () => { if (doc.hidden) stop(); else if (!motionOff() && visible) start(); });
+    doc.addEventListener('visibilitychange', () => { if (doc.hidden) stop(); else if (allowedToRun() && visible) start(); });
 
     // Resize
     let rt = 0;
@@ -338,7 +376,7 @@
       stage.addEventListener('pointerleave', () => { pointer.tx = 0; pointer.ty = 0; });
     }
 
-    setMotion(prefersReduced() ? false : stored !== 'off');   // the OS setting wins; a remembered "off" also wins
+    setMotion(resolveMotion());
   }
 
   /* ---------------------------------------------------------------------------
@@ -347,17 +385,60 @@
   const wfSteps = $$('[data-wf-step]');
   const wfGlyphs = $$('[data-wf-glyph]');
   const wfIdx = $('#wf-hud-idx'), wfName = $('#wf-hud-name');
-  if (wfSteps.length && wfGlyphs.length && 'IntersectionObserver' in window) {
+  const wfNavEl = $('#nav'), wfCardEl = $('.wf-stage-card');
+  if (wfSteps.length && wfGlyphs.length) {
     const activate = (i) => {
       wfSteps.forEach((s, j) => s.classList.toggle('is-active', i === j));
       wfGlyphs.forEach((g, j) => g.classList.toggle('is-active', i === j));
       if (wfIdx) wfIdx.textContent = String(i + 1).padStart(2, '0');
       if (wfName) { const n = $('.wf-name', wfSteps[i]); if (n) wfName.textContent = n.textContent; }
     };
-    const wio = new IntersectionObserver((entries) => {
-      entries.forEach((en) => { if (en.isIntersecting) activate(wfSteps.indexOf(en.target)); });
-    }, { rootMargin: '-38% 0px -42% 0px', threshold: 0 });
-    wfSteps.forEach((s) => wio.observe(s));
+    // Pick the step whose centre is nearest a target line, recomputed directly from layout on every scroll —
+    // not gated by IntersectionObserver "is this step touching a fixed band" state. A band narrower than a step
+    // (which the readable area below the sticky strip on a short viewport can be) means only one step, possibly
+    // the wrong one, is ever "in" it at a given scroll position; scanning every step's actual position avoids that.
+    // At <=860px the stage becomes an opaque sticky strip stacked over the steps (see the CSS comment above that
+    // media query). Returns the strip's bottom edge in viewport px (0 on the wide layout, where there is no strip).
+    const stripBottom = () => (wfNavEl && wfCardEl && window.matchMedia('(max-width: 860px)').matches)
+      ? wfNavEl.getBoundingClientRect().height + 8 /* the stage's own top offset above the card */ + wfCardEl.getBoundingClientRect().height
+      : 0;
+    let lastActive = -1;
+    const pick = () => {
+      const strip = stripBottom();
+      const mid = (strip ? strip + 16 /* reading gap below the strip */ : 0) + (window.innerHeight - strip) / 2;
+      // What hides a heading at the top: the strip, or on the wide layout (no strip) the fixed nav bar.
+      const cover = strip || (wfNavEl ? Math.max(0, wfNavEl.getBoundingClientRect().bottom) : 0);
+      // Nearest-to-mid alone still picks a step whose centre has drifted back up under the strip late in its own
+      // scroll range, right before the next step would take over — "nearest" only needs the neighbour to be even
+      // further away, which near the strip boundary it briefly isn't. Never choose a step still under the strip
+      // while a step clear of it exists; only fall back to "least hidden" when nothing is clear yet (section entry).
+      // "Under the strip" and "clear" are judged by the step's heading, not its box: the box starts at the step's
+      // top padding (~32px above the heading), so by the box edge a step whose heading is still readable just below
+      // the strip already counts as hidden, and the next step counts as clear while only its empty padding is on
+      // screen, which made the strip name a step none of whose text was visible yet. A clear step's heading must also
+      // be wholly on screen: on a 320px-tall viewport a heading peeking a few px above the bottom edge otherwise took
+      // over while the previous step's text was still the only readable text.
+      let bestClear = -1, bestClearDist = Infinity;
+      let bestHidden = -1, bestHiddenTop = -Infinity;
+      wfSteps.forEach((s, i) => {
+        const r = s.getBoundingClientRect();
+        if (r.bottom <= 0 || r.top >= window.innerHeight) return; // off-screen entirely: not a candidate
+        const n = $('.wf-name', s);
+        const h = n ? n.getBoundingClientRect() : r;
+        if (h.top >= cover) {
+          if (h.bottom > window.innerHeight + 1) return;            // heading not fully on screen yet (1px for sub-pixel layout)
+          const dist = Math.abs((r.top + r.bottom) / 2 - mid);
+          if (dist < bestClearDist) { bestClearDist = dist; bestClear = i; }
+        } else if (h.top > bestHiddenTop) { bestHiddenTop = h.top; bestHidden = i; }
+      });
+      const best = bestClear >= 0 ? bestClear : bestHidden;
+      if (best >= 0 && best !== lastActive) { activate(best); lastActive = best; }
+    };
+    let ticking = false;
+    const onScrollOrResize = () => { if (!ticking) { ticking = true; requestAnimationFrame(() => { ticking = false; pick(); }); } };
+    window.addEventListener('scroll', onScrollOrResize, { passive: true });
+    window.addEventListener('resize', onScrollOrResize, { passive: true });
+    pick();
   }
 
   /* ---------------------------------------------------------------------------
@@ -398,7 +479,10 @@
       const v = (id) => (($('#' + id) || {}).value || '').trim();
       const appliance = v('f-appliance');
       const subject = 'New case — ' + appliance;
-      const body = ['Name: ' + v('f-name'), 'Practice: ' + v('f-practice'), 'Email: ' + v('f-email'), 'Appliance: ' + appliance, '', 'Notes:', v('f-notes')].join('\r\n');
+      // A textarea's value always has LF-only line breaks, even where the join below uses RFC 6068's required CRLF;
+      // normalise the notes field the same way so a multi-line note doesn't mix the two inside one mailto body.
+      const notes = v('f-notes').replace(/\r?\n/g, '\r\n');
+      const body = ['Name: ' + v('f-name'), 'Practice: ' + v('f-practice'), 'Email: ' + v('f-email'), 'Appliance: ' + appliance, '', 'Notes:', notes].join('\r\n');
       if (status) status.textContent = 'Opening your email app with the case details.';
       window.location.href = 'mailto:' + to + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
     });
