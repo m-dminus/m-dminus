@@ -7,7 +7,7 @@ is public; CloudFront reads it through Origin Access Control. Expected cost for 
 
 | File | Purpose |
 | --- | --- |
-| `cloudformation.yml` | The infrastructure: bucket, bucket policy, Origin Access Control, CloudFront distribution, www→apex redirect function, optional ACM certificate and Route 53 records |
+| `cloudformation.yml` | The infrastructure: bucket, bucket policy, Origin Access Control, CloudFront distribution, optional ACM certificate, and, with a Route 53 zone, the DNS records and (when www is included) a www→apex redirect function |
 | `deploy.sh` | One command: creates/updates the stack, uploads the site with the right cache headers and content types, invalidates the CloudFront cache |
 | `github-deploy-role-policy.json` | IAM permissions for the GitHub Actions role (only needed for the AWS workflow) |
 | `../../.github/workflows/deploy-aws.yml` | GitHub Actions workflow that runs `deploy.sh` from the Actions tab |
@@ -62,13 +62,29 @@ CERT_ARN=arn:aws:acm:us-east-1:123456789012:certificate/… bash deploy/aws/depl
 
 Finally, at GoDaddy point `www` (CNAME) at the CloudFront domain the script prints, and forward the apex domain
 `maskatech.com` to `https://www.maskatech.com` (GoDaddy cannot alias an apex domain to CloudFront; forwarding is its
-workaround). Remove the existing forwarding rule that currently frames theteethboutique.com first.
+workaround). Remove the existing forwarding rule that currently frames theteethboutique.com first. The stack only
+redirects `www` back to the apex when Route 53 hosts the zone (where the apex genuinely resolves to this
+distribution); with DNS kept at GoDaddy it does not, so the apex→`www` forward above is the one hop a visitor takes,
+not a loop. This option needs `INCLUDE_WWW` left at its default `true` and a certificate covering both names: `www` is
+the only name GoDaddy can point at CloudFront, and with `INCLUDE_WWW=false` the stack serves the apex alone, which
+GoDaddy DNS cannot reach. Make the apex forward permanent (301) and without masking.
+
+On this option the site is served from `www.maskatech.com` and the apex is only a redirect, but the site names the
+apex as its address: the canonical link, `og:url`, `og:image`, `twitter:image` and the JSON-LD `url` and `logo` in
+`index.html`, the `<loc>` in `sitemap.xml` and the `Sitemap:` line in `robots.txt` all start with
+`https://maskatech.com/`. Either accept that those addresses redirect one hop to `www`, or, if you settle on this
+option, change that prefix to `https://www.maskatech.com/` in all of them. Change them only for this option: GitHub
+Pages and the Route 53 option serve the apex, where the current addresses are correct.
 
 ## What the deploy uploads
 
 Everything in the repository except the repository-only files: `.git`, `.github`, `deploy/`, `README.md`,
-`CONTENT-REVIEW.md`, `og.html`, `.gitignore`, `.nojekyll`. Assets are cached for one day; HTML and metadata are
-always revalidated, and every deploy invalidates the whole CloudFront cache, so changes show up within a minute.
+`CONTENT-REVIEW.md`, `og.html`, `.gitignore`, `.nojekyll`. HTML and metadata are always revalidated, and every deploy
+invalidates the whole CloudFront cache, so a page's own markup shows up within a minute for every visitor. Assets
+(CSS, JS, fonts, images) are cached for one day at an un-versioned URL: a CloudFront invalidation clears CloudFront's
+own cache, but a browser that fetched a stylesheet or script within the last day keeps serving its own cached copy
+regardless, so a deploy that changes both markup and an asset can show the new markup with the old asset for up to a
+day on a returning visitor's machine (a first-time visitor, or one who hard-refreshes, always gets the new asset).
 
 ## Notes
 

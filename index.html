@@ -44,7 +44,7 @@
     "url": "https://maskatech.com/",
     "email": "cases@maskatech.com",
     "description": "Digital dental laboratory. Night guards and clear retainers, digitally designed for dental practices.",
-    "logo": "https://maskatech.com/assets/img/logo.svg"
+    "logo": "https://maskatech.com/favicon.svg"
   }
   </script>
 </head>
@@ -480,6 +480,10 @@
           </div>
           <div class="form-foot">
             <p class="form-note">Submitting opens your email app with the case details prefilled.</p>
+            <!-- Without JavaScript the form submits natively as a mailto: text/plain POST; some browsers turn every
+                 "&" in a field into a line break in the prefilled body (e.g. "Smith & Jones Dental" arrives as two
+                 lines). Harmless, but writing directly avoids it. -->
+            <noscript><p class="form-note">If a field contains "&amp;", writing to <a class="link" href="mailto:cases@maskatech.com">cases@maskatech.com</a> directly avoids it landing on its own line in the email.</p></noscript>
             <button class="btn btn--primary" type="submit" data-magnet>Prepare email <span class="btn-arrow" aria-hidden="true"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
           </div>
           <p class="form-status" id="form-status" role="status"></p>

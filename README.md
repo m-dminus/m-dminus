@@ -24,13 +24,13 @@ fallback. Every readout on the page describes that animation only; there are no 
 | `og.html` | 1200×630 source card used to render `assets/img/og-image.jpg` (not published) |
 | `assets/css/style.css` | All styles (CSS custom properties, no build step) |
 | `assets/js/site-config.js` | **Edit contact details here** (email, sister-practice block) |
-| `assets/js/main.js` | Behaviour (progressive enhancement; the site works with JavaScript off) |
+| `assets/js/main.js` | Behaviour (progressive enhancement; the site works with JavaScript off, with one interim exception described under *Accessibility and motion*) |
 | `assets/fonts/` | Self-hosted web fonts (Syne, Inter Tight, Geist Mono; `fonts.css` + `.woff2`) with their SIL OFL licence texts (`OFL-*.txt`). No third-party font requests. |
 | `assets/img/` | `appliance-layers.svg` (hero fallback, generated from the same geometry as the canvas), `logo.svg` (wordmark outlined as paths, no font dependency), `og-image.jpg` (rendered from `og.html`) |
 | `favicon.svg` | Site icon (root, referenced by the pages and the manifest) |
 | `robots.txt`, `sitemap.xml`, `site.webmanifest` | Crawler and PWA metadata |
 | `CONTENT-REVIEW.md` | Every factual statement on the site and where it was verified. **Read this before launch.** (not published) |
-| `.github/workflows/pages.yml` | Deploys the site to GitHub Pages on every push to `main`; the README, this review, `og.html`, `deploy/` and the dotfiles are left out of the published site |
+| `.github/workflows/pages.yml` | Deploys the site to GitHub Pages on every push to `main`; the README, this review, `og.html`, `deploy/`, `.gitignore`, `.github` and the agent-toolkit files (`CLAUDE.md`, `.mcp.json`, `.claude/`) are left out of the published site (`.nojekyll` **is** published — it is meant to be read by GitHub Pages, so that's fine) |
 | `.github/workflows/deploy-aws.yml` | Publishes the site to AWS (S3 + CloudFront) from the Actions tab |
 | `deploy/aws/` | CloudFormation template, one-command deploy script and instructions for AWS — see `deploy/aws/README.md` |
 | `CLAUDE.md`, `.mcp.json`, `.claude/skills/` | AWS Agent Toolkit setup for AI coding agents (rules, AWS MCP server, AWS skills); kept out of the published site — see `deploy/aws/AGENT-TOOLKIT.md` |
@@ -38,10 +38,14 @@ fallback. Every readout on the page describes that animation only; there are no 
 
 There is no build step and no framework. Every file is plain HTML, CSS and JavaScript.
 
-Accessibility and motion: the site is complete with JavaScript disabled (static markup, fallback image, wrapped nav).
+Accessibility and motion: the site is complete with JavaScript disabled (static markup, fallback image, wrapped nav),
+except the not-found page on the interim GitHub Pages preview (see below).
 The hero animation never starts when the visitor's system asks for reduced motion, and the **Motion** button on the
-stage turns it off or on at any time (remembered in the browser). Keyboard users get the same content in DOM order:
-skip link, nav, hero copy, Motion button, sections; the canvas and all readouts are hidden from assistive technology.
+stage turns it off or on at any time (remembered in the browser, unless the system is asking for reduced motion,
+which always wins over a remembered "on", or is using forced colors such as Windows High Contrast, where the canvas
+cannot be recoloured: there the static image is always shown and the Motion button and readouts are hidden).
+Keyboard users get the same content in DOM order: skip link, nav, hero copy, Motion button (absent under forced
+colors), sections; the canvas and all readouts are hidden from assistive technology.
 
 ## Preview locally
 
@@ -57,13 +61,23 @@ python3 -m http.server 8080
 1. In this repository open **Settings → Pages** and set **Source** to **GitHub Actions**.
 2. Merge to `main` (or run the "Deploy site to GitHub Pages" workflow manually from the Actions tab).
 3. Until the custom domain below is attached, the site is served at `https://m-dminus.github.io/m-dminus/`
-   (also shown in **Settings → Pages**). Every asset path in the site is relative, so it works at that sub-path
-   exactly as it will at the root of maskatech.com.
+   (also shown in **Settings → Pages**). Every asset path in `index.html` (and in the stylesheet and the manifest)
+   is relative, so the page works at that sub-path exactly as it will at the root of maskatech.com. Two things do
+   *not* work at that sub-path. First, `404.html` uses root-absolute paths (it is served for missing URLs at any
+   depth, where relative paths would break); when JavaScript runs, its inline scripts load the assets and point the
+   home links at the `/m-dminus/` prefix instead. With JavaScript off, any not-found page on the preview loads no
+   stylesheet and its home links go to `https://m-dminus.github.io/`, not to the site. On the custom domain and on
+   AWS, both served from the root, it is complete either way. Second, `robots.txt` is only honoured by crawlers when
+   fetched from the origin's true root (`https://m-dminus.github.io/robots.txt`, a different, unrelated site), so
+   `robots.txt`'s `Sitemap:` line — and `sitemap.xml` itself — is not reachable by a crawler during this interim.
+   There is no static-file fix for either; both are properties of serving from a sub-path, not bugs in these files,
+   and both resolve themselves the moment the custom domain is attached below (crawler indexing is unlikely to matter
+   yet regardless, since the interim page has no inbound links to be found by).
 
 ## Deploy to AWS instead (or as well)
 
-`deploy/aws/` publishes the same files as a private S3 bucket behind CloudFront (HTTPS, custom 404, optional custom
-domain). With the AWS CLI signed in, one command does it all:
+`deploy/aws/` publishes the same files (except `.nojekyll`, which only GitHub Pages reads) as a private S3 bucket
+behind CloudFront (HTTPS, custom 404, optional custom domain). With the AWS CLI signed in, one command does it all:
 
 ```bash
 bash deploy/aws/deploy.sh
@@ -84,9 +98,11 @@ The domain is registered at GoDaddy. As of 2026-09-18 it forwards (in a frame) t
    - Add a **CNAME** record for `www` pointing to `m-dminus.github.io`.
 3. **GoDaddy → maskatech.net:** set *Forwarding* to `https://maskatech.com` (permanent 301) so the .net resolves to the same site.
 4. Nothing to change in the pages: GitHub Pages serves the custom `404.html` for missing URLs (including nested ones such
-   as `/a/b/`), and a small inline script in `404.html` resolves its relative asset paths against the site root — `/` on
-   the custom domain, `/m-dminus/` on the project preview. If the repository is ever renamed, update the one `'m-dminus'`
-   string in that script.
+   as `/a/b/`), and a small inline script in `404.html` detects the site root from the hostname — `/m-dminus/` on the
+   `*.github.io` project preview, `/` everywhere else (custom domain, CloudFront) — and writes its asset and home links
+   with that prefix. Without JavaScript the page keeps its root-absolute paths, which are right on the custom domain
+   but not on the preview. If the repository is ever renamed, update the one `'m-dminus'` string (`var repo`) in that
+   script.
 
 Source for the record values: GitHub Docs, "Managing a custom domain for your GitHub Pages site".
 No `CNAME` file is needed in the repository when deploying with GitHub Actions.
