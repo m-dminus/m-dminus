@@ -16,10 +16,12 @@
 
   const doc = document;
   const root = doc.documentElement;
-  root.classList.add('reveal');                              // CSS hides [data-reveal] only once this script runs
   const cfg = window.MASKATECH_CONFIG || {};
-  const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const fineMQ = window.matchMedia('(hover: hover) and (pointer: fine)');
+  // A browser that runs this syntax has matchMedia, but a stripped-down embedded view can lack it. Treat every query
+  // as unmatched there instead of throwing before the rest of the script (scroll reveals included) has run.
+  const mq = (q) => (window.matchMedia ? window.matchMedia(q) : { matches: false, addEventListener() {}, addListener() {} });
+  const reduceMQ = mq('(prefers-reduced-motion: reduce)');
+  const fineMQ = mq('(hover: hover) and (pointer: fine)');
   const prefersReduced = () => reduceMQ.matches;
   // Safari < 14 only has the legacy addListener
   const onMQ = (mq, fn) => (mq.addEventListener ? mq.addEventListener('change', fn) : mq.addListener(fn));
@@ -136,6 +138,9 @@
   /* ---------------------------------------------------------------------------
      3. Scroll reveals
      --------------------------------------------------------------------------- */
+  // CSS hides [data-reveal] only once this class is set. It is set here, right before the code that reveals them
+  // again, so an error anywhere above leaves the content showing rather than hidden for good.
+  root.classList.add('reveal');
   const reveals = $$('[data-reveal]');
   if ('IntersectionObserver' in window && !prefersReduced()) {
     const io = new IntersectionObserver((entries) => {
@@ -159,7 +164,12 @@
   const canvas = $('#hero-canvas');
   const motionBtn = $('#hud-motion');
   if (stage && canvas && canvas.getContext) {
+    // getContext returns null when the browser cannot give the page a 2D context (canvas blocked by a privacy
+    // setting or extension, a lost GPU process). The static fallback then stays, as without JavaScript; start() below
+    // never runs the animation, and the readouts that describe it are hidden (CSS). The Motion toggle stays: it also
+    // pauses the ticker and the workflow glyphs.
     const ctx = canvas.getContext('2d');
+    if (!ctx) stage.classList.add('no-canvas');
     const hudLayer = $('#hud-layer'), hudOrbit = $('#hud-orbit'), hudTotal = $('#hud-total');
     const phasePills = $$('.hud-phase', stage);
 
@@ -327,7 +337,7 @@
       raf = requestAnimationFrame(frame);
     };
 
-    const start = () => { if (running || !visible) return; running = true; t0 = 0; stage.classList.add('is-live'); resize(); raf = requestAnimationFrame(frame); };
+    const start = () => { if (!ctx || running || !visible) return; running = true; t0 = 0; stage.classList.add('is-live'); resize(); raf = requestAnimationFrame(frame); };
     const stop = () => { running = false; cancelAnimationFrame(raf); };
     const motionOff = () => root.classList.contains('motion-off');
     // The canvas is always drawn with the dark-theme palette (rgba literals below), which the user agent does not
@@ -335,7 +345,7 @@
     // colours land on a Canvas-coloured background and the animation becomes unreadable while the HUD readouts keep
     // reporting a layer count and orbit angle for something the visitor cannot see. Keep the static SVG fallback
     // (and its alt text) showing instead, the same as under reduced motion.
-    const forcedColorsMQ = window.matchMedia('(forced-colors: active)');
+    const forcedColorsMQ = mq('(forced-colors: active)');
     const forcedColors = () => forcedColorsMQ.matches;
     // Single source of truth for "is the animation allowed to run right now" — every call site below goes through
     // this (not just motionOff()) so forced colors is respected regardless of which event asks for a restart.
@@ -346,7 +356,7 @@
     const setMotion = (on, remember) => {
       root.classList.toggle('motion-off', !on);
       if (motionBtn) { motionBtn.setAttribute('aria-pressed', String(on)); const s = $('.hud-state', motionBtn); if (s) s.textContent = on ? 'on' : 'off'; }
-      if (remember) { try { localStorage.setItem('maskatech-motion', on ? 'on' : 'off'); } catch (err) { /* storage unavailable */ } }
+      if (remember) { try { localStorage.setItem('maskatech-motion', on ? 'on' : 'off'); } catch { /* storage unavailable */ } }
       apply();
     };
     if (motionBtn) motionBtn.addEventListener('click', () => setMotion(motionOff(), true));
@@ -354,7 +364,7 @@
     // Read fresh each time (not just once at boot) so a later OS-setting change still honours a stored "off"
     // instead of unconditionally turning the animation back on underneath it.
     const resolveMotion = () => {
-      let stored = null; try { stored = localStorage.getItem('maskatech-motion'); } catch (err) { /* storage unavailable */ }
+      let stored = null; try { stored = localStorage.getItem('maskatech-motion'); } catch { /* storage unavailable */ }
       return prefersReduced() ? false : stored !== 'off';
     };
     onMQ(reduceMQ, () => setMotion(resolveMotion()));
@@ -399,7 +409,7 @@
     // the wrong one, is ever "in" it at a given scroll position; scanning every step's actual position avoids that.
     // At <=860px the stage becomes an opaque sticky strip stacked over the steps (see the CSS comment above that
     // media query). Returns the strip's bottom edge in viewport px (0 on the wide layout, where there is no strip).
-    const stripBottom = () => (wfNavEl && wfCardEl && window.matchMedia('(max-width: 860px)').matches)
+    const stripBottom = () => (wfNavEl && wfCardEl && mq('(max-width: 860px)').matches)
       ? wfNavEl.getBoundingClientRect().height + 8 /* the stage's own top offset above the card */ + wfCardEl.getBoundingClientRect().height
       : 0;
     let lastActive = -1;
@@ -477,7 +487,9 @@
       if (!to.includes('@')) return;                           // no usable address: let the native submit proceed
       e.preventDefault();
       const v = (id) => (($('#' + id) || {}).value || '').trim();
-      const appliance = v('f-appliance');
+      // The options' values are ASCII stand-ins for the no-JavaScript submission (see index.html); use the label.
+      const sel = $('#f-appliance');
+      const appliance = sel && sel.selectedIndex >= 0 ? sel.options[sel.selectedIndex].text.trim() : v('f-appliance');
       const subject = 'New case — ' + appliance;
       // A textarea's value always has LF-only line breaks, even where the join below uses RFC 6068's required CRLF;
       // normalise the notes field the same way so a multi-line note doesn't mix the two inside one mailto body.

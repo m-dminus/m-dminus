@@ -283,6 +283,10 @@ html.reveal [data-reveal-group] [data-reveal]:nth-child(5) { transition-delay: 2
 html.no-js .nav-progress { display: none; }
 @media (forced-colors: active) { .nav-progress { background: LinkText; forced-color-adjust: none; } }
 html.no-js .nav { background: rgba(10, 9, 20, 0.88); border-bottom-color: var(--line); }
+/* Forced colors swaps an author background colour for the system Canvas colour but keeps its alpha, so the 82% and
+   88% backgrounds above became an 82%/88% Canvas and the text scrolling under the fixed bar showed through it. A
+   system colour is used as is: opaque. */
+@media (forced-colors: active) { .nav.is-scrolled, .nav.is-open, html.no-js .nav { background-color: Canvas; } }
 
 .brand { display: inline-flex; align-items: center; gap: 0.7rem; min-height: 2.75rem; min-width: 0; color: var(--fg); }
 .brand-mark { width: 30px; height: 30px; flex: none; color: var(--fg); }
@@ -459,6 +463,9 @@ html.no-js .hud { display: none; }
    static fallback showing instead; hide the readouts and the Motion toggle so nothing describes an animation that
    is not running, or shows a state (the phase pills, the Motion on/off text) that has no visible effect here. */
 @media (forced-colors: active) { .hud { display: none; } }
+/* main.js adds .no-canvas when the browser gives the page no 2D canvas context: the static fallback stays, so hide the
+   readouts that describe the animation. The Motion toggle stays, since it also pauses the ticker and workflow glyphs. */
+.hero-stage.no-canvas .hud:not(.hud--motion) { display: none; }
 
 .hero-specs {
   display: grid; grid-template-columns: repeat(4, 1fr);
@@ -813,7 +820,13 @@ html.motion-off .hero-canvas { opacity: 0; }
   .hero-canvas, .hud { display: none; }
   .hero-stage { position: static; aspect-ratio: auto; height: auto; break-inside: avoid; background: none; }
   .hero-fallback { opacity: 1 !important; position: static; width: auto; max-width: 20rem; margin-inline: auto; padding: 0; }
+  /* The illustration's strokes are light lavender (two amber) drawn for the dark ground, so on paper they all but
+     vanished. Invert them to dark, then turn the hue back half a circle so the amber stays amber rather than blue. */
+  .hero-fallback { filter: invert(1) hue-rotate(180deg); }
   .hero { min-height: 0; padding-top: 1.5rem; }
+  /* 404.html: the page-height minimum (100svh is the page box in print) plus the header left too little room for the
+     footer, which printed alone on a second page. The header is static on paper, so its clearance can go too. */
+  .err { min-height: 0; padding-top: var(--s-6); }
 
   /* Gradient-clipped text ("up." in the headline, the 404 code's "0") paints nothing once backgrounds are off,
      since its only ink is a background-image; mirrors the existing forced-colors fallback for the same rules. */
@@ -823,16 +836,29 @@ html.motion-off .hero-canvas { opacity: 0; }
      the infinite scroll position are not meaningful on a static page). */
   .ticker { display: none; }
 
-  /* Sticky workflow stage: on screen it stays pinned near the nav while the page scrolls under it. Printed, that
-     on-screen offset becomes a fixed offset on every page instead of the card's normal place in the flow, so it can
-     land across a page break or over unrelated content further down. Print it in normal flow instead. */
-  .wf-stage { position: static; z-index: auto; top: auto; }
-  .wf-stage-card { background: none; break-inside: avoid; }
+  /* Workflow stage card: an aria-hidden readout of whichever step is in view while scrolling, like the hero HUD. On
+     paper it only shows the step that happened to be active, and as an unbreakable square up to 32rem tall it did not
+     fit under the section heading on a landscape page, so it moved to the next page and took the steps column (same
+     grid row) with it, leaving half a page empty. The steps carry all of its content; leave it out. */
+  .wf-stage { display: none; }
+  .wf { grid-template-columns: 1fr; }
 
   /* A translucent-white border on white paper, and an unprinted dark background, leave no visible field boundary. */
   .field input, .field select, .field textarea { border-color: var(--line-3); background: none; }   /* #888: 3.5:1 on paper */
 
-  .card, .stack-item, .appliance, .step, .wf-step, .practices-panel, .field { break-inside: avoid; }   /* .field: label stays with its box */
+  /* .practices-panel is not in this list: kept whole, the nearly page-tall panel jumped to the next page whenever it
+     did not fit, leaving 40-75% of the page before it empty. Its steps still never split, so it can break between
+     them. The footer is kept whole instead, so its last row never prints alone on a final page (it did on US Letter
+     portrait), and on paper it needs less of its screen spacing (4rem above it, 3rem above that row). */
+  .card, .stack-item, .appliance, .step, .wf-step, .field, .footer { break-inside: avoid; }   /* .field: label stays with its box */
+  /* Side by side (landscape pages are wider than the 860px breakpoint), each of these grids is one row holding an
+     unbreakable card or step list. Chromium moves a row that cannot break where it needs to whole to the next page,
+     which left that page's last third to three quarters empty. Stacked, as on portrait paper, they break between
+     blocks. Measured over Letter/A4 x portrait/landscape x backgrounds on/off: no page but the last below 70% full
+     (55% before), and US Letter portrait one page shorter. */
+  .practices-grid, .clinic, .contact { grid-template-columns: 1fr; }
+  .footer { padding-block: var(--s-5); }
+  .footer-bottom { margin-top: var(--s-5); }
   /* The screen section padding (up to ~9.5rem top and bottom) is far more than paper needs, and in landscape a
      section's bottom padding could spill alone onto an otherwise blank page before the next section. */
   .sec { padding-block: 2rem; }

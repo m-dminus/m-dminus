@@ -467,10 +467,12 @@
             <label for="f-appliance">Appliance</label>
             <select id="f-appliance" name="Appliance" required>
               <option value="">Select</option>
-              <option>Night guard – upper</option>
-              <option>Night guard – lower</option>
-              <option>Clear retainer – upper</option>
-              <option>Clear retainer – lower</option>
+              <!-- The values are plain ASCII on purpose: a no-JavaScript submission in Chromium garbles any non-ASCII
+                   character (the label's en dash arrived as "â€“"). main.js puts the label itself in the email. -->
+              <option value="Night guard - upper">Night guard – upper</option>
+              <option value="Night guard - lower">Night guard – lower</option>
+              <option value="Clear retainer - upper">Clear retainer – upper</option>
+              <option value="Clear retainer - lower">Clear retainer – lower</option>
               <option>Other</option>
             </select>
           </div>
@@ -480,10 +482,11 @@
           </div>
           <div class="form-foot">
             <p class="form-note">Submitting opens your email app with the case details prefilled.</p>
-            <!-- Without JavaScript the form submits natively as a mailto: text/plain POST; some browsers turn every
-                 "&" in a field into a line break in the prefilled body (e.g. "Smith & Jones Dental" arrives as two
-                 lines). Harmless, but writing directly avoids it. -->
-            <noscript><p class="form-note">If a field contains "&amp;", writing to <a class="link" href="mailto:cases@maskatech.com">cases@maskatech.com</a> directly avoids it landing on its own line in the email.</p></noscript>
+            <!-- Without JavaScript the form submits natively as a mailto: text/plain POST. Chromium turns every "&" in
+                 a field into a line break in the prefilled body ("Smith & Jones Dental" arrives as two lines) and
+                 encodes non-ASCII text twice ("Zoë" arrives as "ZoÃ«"). No markup fixes either for text people type;
+                 writing directly avoids both. -->
+            <noscript><p class="form-note">If a field contains "&amp;" or a letter like é or ü, write to <a class="link" href="mailto:cases@maskatech.com">cases@maskatech.com</a> directly: some browsers break those characters in the prefilled email.</p></noscript>
             <button class="btn btn--primary" type="submit" data-magnet>Prepare email <span class="btn-arrow" aria-hidden="true"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
           </div>
           <p class="form-status" id="form-status" role="status"></p>
