@@ -821,11 +821,15 @@ html.motion-off .hero-canvas { opacity: 0; }
   .hero-stage { position: static; aspect-ratio: auto; height: auto; break-inside: avoid; background: none; }
   .hero-fallback { opacity: 1 !important; position: static; width: auto; max-width: 20rem; margin-inline: auto; padding: 0; }
   /* The illustration's strokes are light lavender (two amber) drawn for the dark ground, so on paper they all but
-     vanished. Invert them to dark, then turn the hue back half a circle so the amber stays amber rather than blue. */
+     vanished. Invert them to dark, then turn the hue back half a circle so the amber stays amber rather than blue.
+     Chromium prints a filtered image as a bitmap (about 300 dpi, roughly 0.6 MB more in a saved PDF). A print-only
+     copy of the SVG swapped in with content: url() would stay vector, but it is fetched only once print styles apply,
+     and a print that does not wait for it would come out with no illustration at all. */
   .hero-fallback { filter: invert(1) hue-rotate(180deg); }
   .hero { min-height: 0; padding-top: 1.5rem; }
-  /* 404.html: the page-height minimum (100svh is the page box in print) plus the header left too little room for the
-     footer, which printed alone on a second page. The header is static on paper, so its clearance can go too. */
+  /* 404.html: the page-height minimum (in print, 100svh is the page area inside the margins) plus the header left too
+     little room for the footer, which printed alone on a second page. The header is static on paper, so its
+     clearance can go too. */
   .err { min-height: 0; padding-top: var(--s-6); }
 
   /* Gradient-clipped text ("up." in the headline, the 404 code's "0") paints nothing once backgrounds are off,
