@@ -840,28 +840,20 @@ html.motion-off .hero-canvas { opacity: 0; }
      the infinite scroll position are not meaningful on a static page). */
   .ticker { display: none; }
 
-  /* Workflow stage card: an aria-hidden readout of whichever step is in view while scrolling, like the hero HUD. On
-     paper it only shows the step that happened to be active, and as an unbreakable square up to 32rem tall it did not
-     fit under the section heading on a landscape page, so it moved to the next page and took the steps column (same
-     grid row) with it, leaving half a page empty. The steps carry all of its content; leave it out. */
-  .wf-stage { display: none; }
-  .wf { grid-template-columns: 1fr; }
+  /* Sticky workflow stage: on screen it stays pinned near the nav while the page scrolls under it. Printed, that
+     on-screen offset becomes a fixed offset on every page instead of the card's normal place in the flow, so it can
+     land across a page break or over unrelated content further down. Print it in normal flow instead. */
+  .wf-stage { position: static; z-index: auto; top: auto; }
+  .wf-stage-card { background: none; break-inside: avoid; }
 
   /* A translucent-white border on white paper, and an unprinted dark background, leave no visible field boundary. */
   .field input, .field select, .field textarea { border-color: var(--line-3); background: none; }   /* #888: 3.5:1 on paper */
 
-  /* .practices-panel is not in this list: kept whole, the nearly page-tall panel jumped to the next page whenever it
-     did not fit, leaving 40-75% of the page before it empty. Its steps still never split, so it can break between
-     them. The footer is kept whole instead, so its last row never prints alone on a final page (it did on US Letter
-     portrait), and on paper it needs less of its screen spacing (4rem above it, 3rem above that row). */
-  .card, .stack-item, .appliance, .step, .wf-step, .field, .footer { break-inside: avoid; }   /* .field: label stays with its box */
-  /* Side by side (landscape pages are wider than the 860px breakpoint), each of these grids is one row holding an
-     unbreakable card or step list. Chromium moves a row that cannot break where it needs to whole to the next page,
-     which left that page's last third to three quarters empty. Stacked, as on portrait paper, they break between
-     blocks. Measured over Letter/A4 x portrait/landscape x backgrounds on/off: no page but the last below 70% full
-     (55% before), and US Letter portrait one page shorter. */
-  .practices-grid, .clinic, .contact { grid-template-columns: 1fr; }
-  .footer { padding-block: var(--s-5); }
+  .card, .stack-item, .appliance, .step, .wf-step, .practices-panel, .field { break-inside: avoid; }   /* .field: label stays with its box */
+  /* The footer is kept whole too. Split, its last row could print alone on a final page, 5-15% full, in 11 of 56
+     set-ups measured (Letter and A4, portrait and landscape, JavaScript on and off, margins from 0 to 1in). On paper
+     it also needs less of its screen spacing (4rem above it, 3rem above that row). */
+  .footer { break-inside: avoid; padding-block: var(--s-5); }
   .footer-bottom { margin-top: var(--s-5); }
   /* The screen section padding (up to ~9.5rem top and bottom) is far more than paper needs, and in landscape a
      section's bottom padding could spill alone onto an otherwise blank page before the next section. */
