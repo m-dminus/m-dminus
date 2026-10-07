@@ -781,7 +781,10 @@ html.motion-off .hero-canvas { opacity: 0; }
    --------------------------------------------------------------------------- */
 @media print {
   html { scroll-behavior: auto; }
+  /* color-scheme: with the screen's "dark", Chromium painted the page margins near-black (rgb 18,18,18) whenever
+     background graphics were printed. */
   :root {
+    color-scheme: light;
     --bg: #fff; --bg-1: #fff; --bg-2: #fff; --bg-3: #eee; --fg: #111; --fg-2: #333; --fg-3: #555; --accent: #8a5a1e;
     --line: #ccc; --line-2: #999; --line-3: #888;
   }
@@ -793,8 +796,9 @@ html.motion-off .hero-canvas { opacity: 0; }
 
   /* Fixed nav: repeats on every printed page at its on-screen position, and once "is-scrolled" (main.js toggles it
      past an 8px scroll) its translucent-dark background is painted opaque white with backgrounds off, blanking
-     whatever prints underneath it on every page after the first. */
-  .nav, .nav.is-scrolled, .nav.is-open { position: static; background: none; border-bottom: 1px solid var(--line); backdrop-filter: none; }
+     whatever prints underneath it on every page after the first. html.no-js .nav is listed too: its 88% dark
+     background outranks .nav and printed as a near-black bar under the dark nav text when backgrounds were on. */
+  .nav, .nav.is-scrolled, .nav.is-open, html.no-js .nav { position: static; background: none; border-bottom: 1px solid var(--line); backdrop-filter: none; }
   .nav-progress { display: none; }
   .nav-menu { position: static; transform: none; opacity: 1; visibility: visible; background: none; border: 0; padding: 0; max-height: none; }
   .nav-toggle { display: none; }
@@ -821,16 +825,22 @@ html.motion-off .hero-canvas { opacity: 0; }
   .hero-stage { position: static; aspect-ratio: auto; height: auto; break-inside: avoid; background: none; }
   .hero-fallback { opacity: 1 !important; position: static; width: auto; max-width: 20rem; margin-inline: auto; padding: 0; }
   /* The illustration's strokes are light lavender (two amber) drawn for the dark ground, so on paper they all but
-     vanished. Invert them to dark, then turn the hue back half a circle so the amber stays amber rather than blue.
+     vanished. Invert them to dark, then turn the hue back half a circle so the amber line comes out a dark orange
+     rather than blue.
      Chromium prints a filtered image as a bitmap (about 300 dpi, roughly 0.6 MB more in a saved PDF). A print-only
      copy of the SVG swapped in with content: url() would stay vector, but it is fetched only once print styles apply,
      and a print that does not wait for it would come out with no illustration at all. */
   .hero-fallback { filter: invert(1) hue-rotate(180deg); }
   .hero { min-height: 0; padding-top: 1.5rem; }
+  /* The headline's words rise into view over 0.9s after load (inside lines that clip them). A print started within
+     that time caught them part-way or still hidden below the clip. Print them in place. */
+  html.js .hero-title .word { transform: none; animation: none; }
   /* 404.html: the page-height minimum (in print, 100svh is the page area inside the margins) plus the header left too
-     little room for the footer, which printed alone on a second page. The header is static on paper, so its
-     clearance can go too. */
-  .err { min-height: 0; padding-top: var(--s-6); }
+     little room for the footer, which printed alone on a second page. The header is static on paper, so most of its
+     clearance can go too; some space stays below the buttons so they do not sit on the footer's top rule. Landscape
+     with margins of 0.75in or more still has too little height, and there the footer still prints on page 2. */
+  .err { min-height: 0; padding-top: var(--s-5); padding-bottom: var(--s-4); }
+  .err-actions { margin-top: var(--s-5); }
 
   /* Gradient-clipped text ("up." in the headline, the 404 code's "0") paints nothing once backgrounds are off,
      since its only ink is a background-image; mirrors the existing forced-colors fallback for the same rules. */
@@ -850,10 +860,14 @@ html.motion-off .hero-canvas { opacity: 0; }
   .field input, .field select, .field textarea { border-color: var(--line-3); background: none; }   /* #888: 3.5:1 on paper */
 
   .card, .stack-item, .appliance, .step, .wf-step, .practices-panel, .field { break-inside: avoid; }   /* .field: label stays with its box */
-  /* The footer is kept whole too. Split, its last row could print alone on a final page, 5-15% full, in 11 of 56
-     set-ups measured (Letter and A4, portrait and landscape, JavaScript on and off, margins from 0 to 1in). On paper
-     it also needs less of its screen spacing (4rem above it, 3rem above that row). */
-  .footer { break-inside: avoid; padding-block: var(--s-5); }
+  /* The footer is kept whole too. Split, its last row (once with its last link) printed on a final page of its own,
+     under 15% full, in 11 of 56 set-ups measured (Letter and A4, portrait and landscape, JavaScript on and off,
+     margins from 0 to 1in). Only where the page area is at least 36rem tall, which every one of those set-ups is: on
+     a smaller one (A6, or Letter printed at 150% or 200%) moving the footer whole left a page holding nothing but the
+     bottom edge of the form card. On paper it also needs less of its screen spacing (4rem above it, 3rem above that
+     row). */
+  @media (min-height: 36rem) { .footer { break-inside: avoid; } }
+  .footer { padding-block: var(--s-5); }
   .footer-bottom { margin-top: var(--s-5); }
   /* The screen section padding (up to ~9.5rem top and bottom) is far more than paper needs, and in landscape a
      section's bottom padding could spill alone onto an otherwise blank page before the next section. */

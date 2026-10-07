@@ -18,10 +18,15 @@
   const root = doc.documentElement;
   root.classList.add('reveal');                              // CSS hides [data-reveal] only once this script runs
   const cfg = window.MASKATECH_CONFIG || {};
-  // A browser that runs this syntax has matchMedia, but a stripped-down embedded view can lack it. Treat every query
-  // as unmatched there instead of throwing here, which left the [data-reveal] content hidden for good (the class
-  // above hides it, and the code that reveals it never ran).
-  const matchMQ = (q) => (window.matchMedia ? window.matchMedia(q) : { matches: false, addEventListener() {}, addListener() {} });
+  // A browser that runs this syntax has matchMedia, but a stripped-down embedded view can lack it. Without it this
+  // threw here, which left the [data-reveal] content hidden for good (the class above hides it, and the code that
+  // reveals it never ran). Answer conservatively instead: a (max-width: Npx) query from the window width, reduced
+  // motion as requested (the hero stays still until the Motion toggle is pressed), anything else as unmatched.
+  const matchMQ = (q) => {
+    if (window.matchMedia) return window.matchMedia(q);
+    const maxW = /^\(max-width: (\d+)px\)$/.exec(q);
+    return { matches: maxW ? window.innerWidth <= Number(maxW[1]) : q === '(prefers-reduced-motion: reduce)', addEventListener() {}, addListener() {} };
+  };
   const reduceMQ = matchMQ('(prefers-reduced-motion: reduce)');
   const fineMQ = matchMQ('(hover: hover) and (pointer: fine)');
   const prefersReduced = () => reduceMQ.matches;

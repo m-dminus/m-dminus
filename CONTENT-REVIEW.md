@@ -122,7 +122,7 @@ earlier build verified it on 2026-09-06. No clinic tagline is used for that reas
 | "Or write directly — cases@maskatech.com" | Owner-confirm 1 |
 | Select options | Owner-confirm 5 |
 | Placeholder "Arch and anything the design should account for."; "Submitting opens your email app with the case details prefilled."; JS status "Opening your email app with the case details."; generated subject "New case — <appliance>" and body lines Name / Practice / Email / Appliance / Notes | Site mechanics |
-| No-JavaScript note (`<noscript>`): "If a field contains "&" or a letter like é or ü, write to cases@maskatech.com directly: some browsers break those characters in the prefilled email." | Site mechanics (Chromium's mailto form encoding, checked in Chromium on 2026-10-06: "&" starts a new line and non-ASCII text arrives encoded twice, "Zoë" as "ZoÃ«"); address = owner-confirm 1 |
+| No-JavaScript note (`<noscript>`): "If a field contains &, + or %, or a character such as é, ü or ’, write to cases@maskatech.com directly: some browsers change these in the prefilled email." | Site mechanics (Chromium's mailto form encoding, checked in Chromium on 2026-10-07: "&" starts a new line, "+" becomes a space, "%41" arrives as "A", and non-ASCII text arrives encoded twice, "Zoë" as "ZoÃ«"); address = owner-confirm 1 |
 | Select option values "Night guard - upper" etc. (ASCII hyphen; the visible labels keep the en dash) | Site mechanics: the value is what a no-JavaScript submission sends, so it is kept ASCII; with JavaScript the email uses the label |
 
 ## Footer
