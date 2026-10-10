@@ -51,7 +51,7 @@ CF_DOMAIN="$(output DistributionDomainName)"
 
 echo "==> Uploading the site to s3://$BUCKET"
 # Files that belong to the repository, not to the published site
-EXCLUDE=(--exclude ".git/*" --exclude ".github/*" --exclude "deploy/*" --exclude "README.md" --exclude "CONTENT-REVIEW.md"
+EXCLUDE=(--exclude ".git/*" --exclude ".github/*" --exclude ".claude/*" --exclude "CLAUDE.md" --exclude ".mcp.json" --exclude "deploy/*" --exclude "README.md" --exclude "CONTENT-REVIEW.md"
          --exclude "og.html" --exclude ".gitignore" --exclude ".nojekyll" --exclude ".DS_Store" --exclude "*/.DS_Store"
          # aws s3 sync walks the working directory, not the git index, so anything .gitignore expects to appear
          # there locally (a Node tool run in this folder before deploying, an editor log) needs its own exclusion.

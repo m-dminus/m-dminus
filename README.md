@@ -30,9 +30,10 @@ fallback. Every readout on the page describes that animation only; there are no 
 | `favicon.svg` | Site icon (root, referenced by the pages and the manifest) |
 | `robots.txt`, `sitemap.xml`, `site.webmanifest` | Crawler and PWA metadata |
 | `CONTENT-REVIEW.md` | Every factual statement on the site and where it was verified. **Read this before launch.** (not published) |
-| `.github/workflows/pages.yml` | Deploys the site to GitHub Pages on every push to `main`; the README, this review, `og.html`, `deploy/`, `.gitignore` and `.github` are left out of the published site (`.nojekyll` **is** published — it is meant to be read by GitHub Pages, so that's fine) |
+| `.github/workflows/pages.yml` | Deploys the site to GitHub Pages on every push to `main`; the README, this review, `og.html`, `deploy/`, `.gitignore`, `.github` and the agent-toolkit files (`CLAUDE.md`, `.mcp.json`, `.claude/`) are left out of the published site (`.nojekyll` **is** published — it is meant to be read by GitHub Pages, so that's fine) |
 | `.github/workflows/deploy-aws.yml` | Publishes the site to AWS (S3 + CloudFront) from the Actions tab |
 | `deploy/aws/` | CloudFormation template, one-command deploy script and instructions for AWS — see `deploy/aws/README.md` |
+| `CLAUDE.md`, `.mcp.json`, `.claude/skills/` | AWS Agent Toolkit setup for AI coding agents (rules, AWS MCP server, AWS skills); kept out of the published site — see `deploy/aws/AGENT-TOOLKIT.md` |
 | `.nojekyll`, `.gitignore` | Tells GitHub Pages not to run Jekyll; ignores OS/editor files |
 
 There is no build step and no framework. Every file is plain HTML, CSS and JavaScript.
