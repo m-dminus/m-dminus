@@ -22,7 +22,8 @@ earlier build verified it on 2026-09-06. No clinic tagline is used for that reas
 
 ## Items the owner must confirm before launch
 
-1. **cases@maskatech.com** — the mailbox (or a forward) must exist. It is the only contact channel on the site. It appears
+1. **information@theteethboutique.com** — the clinic's mailbox on its own domain (sender and signature of the clinic's
+   March 2026 emails; `theteethboutique.com` has Proton Mail MX records). It is the only contact channel on the site. It appears
    in `assets/js/site-config.js` (`contactEmail`) and, so the site works without JavaScript, literally in `index.html`
    (JSON-LD `email`, Appliances note, For practices, Contact heading link, form `action`, the no-JavaScript form note
    in `<noscript>` next to the Prepare email button, footer) and `404.html`.
@@ -48,7 +49,7 @@ earlier build verified it on 2026-09-06. No clinic tagline is used for that reas
 | Meta description: "… Intraoral scan in, precision appliance out: night guards and clear retainers, digitally designed for the individual case and fabricated in-house." | Case emails (products, scan intake); printer thread (in-house fabrication); "precision" generic |
 | OG/Twitter description: "Built from the scan up. Night guards and clear retainers, digitally designed for the individual case." | Case emails; headline is a slogan |
 | Canonical / og:url / sitemap `https://maskatech.com/` | RDAP: maskatech.com registered to the owner via GoDaddy |
-| JSON-LD: name, url, email cases@maskatech.com, description "Digital dental laboratory. Night guards and clear retainers, digitally designed for dental practices.", logo `favicon.svg` (the square mark, declared 512×512; the 286×44 wordmark `assets/img/logo.svg` is below Google's 112×112 minimum) | As above; email = owner-confirm 1 |
+| JSON-LD: name, url, email information@theteethboutique.com, description "Digital dental laboratory. Night guards and clear retainers, digitally designed for dental practices.", logo `favicon.svg` (the square mark, declared 512×512; the 286×44 wordmark `assets/img/logo.svg` is below Google's 112×112 minimum) | As above; email = owner-confirm 1 |
 | `site.webmanifest` name / short_name / description | As above |
 
 ## Hero
@@ -119,10 +120,10 @@ earlier build verified it on 2026-09-06. No clinic tagline is used for that reas
 | Text | Source |
 |---|---|
 | "Send the case details below. The form opens a prefilled email in your mail app. Nothing is stored on this site." | Site mechanics (mailto form; no server, no third party) |
-| "Or write directly — cases@maskatech.com" | Owner-confirm 1 |
+| "Or write directly — information@theteethboutique.com" | Owner-confirm 1 |
 | Select options | Owner-confirm 5 |
 | Placeholder "Arch and anything the design should account for."; "Submitting opens your email app with the case details prefilled."; JS status "Opening your email app with the case details."; generated subject "New case — <appliance>" and body lines Name / Practice / Email / Appliance / Notes | Site mechanics |
-| No-JavaScript note (`<noscript>`): "If a field contains "&", writing to cases@maskatech.com directly avoids it landing on its own line in the email." | Site mechanics (Chromium's mailto form encoding); address = owner-confirm 1 |
+| No-JavaScript note (`<noscript>`): "If a field contains "&", writing to information@theteethboutique.com directly avoids it landing on its own line in the email." | Site mechanics (Chromium's mailto form encoding); address = owner-confirm 1 |
 
 ## Footer
 
@@ -139,7 +140,7 @@ earlier build verified it on 2026-09-06. No clinic tagline is used for that reas
 | Text | Source |
 |---|---|
 | "Page not found — Maskatech Labs"; "No layer at this address."; "The address may have been typed incorrectly, or the page has moved. Everything else is where it was." | Generic; no location |
-| "cases@maskatech.com", "© 2026 Maskatech Labs", "maskatech.com" | Owner-confirm 1; lab name; RDAP |
+| "information@theteethboutique.com", "© 2026 Maskatech Labs", "maskatech.com" | Owner-confirm 1; lab name; RDAP |
 
 ## og.html (social card)
 
@@ -174,5 +175,5 @@ None is visible site copy and none is an equipment, software or material brand:
 
 No turnaround times, case or doctor counts, accuracy percentages, certifications, equipment/software/material or resin
 brands, pricing, warranties, testimonials, team names or bios, founding year, lab address or phone, any email other than
-cases@maskatech.com, any clinic tagline, and no reference to maskatechlabs.com. "3D printed" appears only where it is
+information@theteethboutique.com, any clinic tagline, and no reference to maskatechlabs.com. "3D printed" appears only where it is
 scoped to night guards. Decorative readouts describe the on-page animation only.

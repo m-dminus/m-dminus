@@ -3,7 +3,7 @@
    The same values are also written statically in index.html so the site is complete with
    JavaScript disabled; keep both in sync when you change them. */
 window.MASKATECH_CONFIG = {
-  contactEmail: "cases@maskatech.com",
+  contactEmail: "information@theteethboutique.com",
   sisterPractice: {
     name: "The Teeth Boutique",
     descriptor: "General dentistry · Chicago",

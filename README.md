@@ -109,8 +109,8 @@ No `CNAME` file is needed in the repository when deploying with GitHub Actions.
 
 ## Before launch — items only you can finish
 
-1. **Create the mailbox `cases@maskatech.com`** (GoDaddy email forwarding or any mail host) or change the address in
-   `assets/js/site-config.js` **and** in every literal copy in `index.html` (including the JSON-LD block) and `404.html`
+1. **Contact address.** The site writes to `information@theteethboutique.com`, the clinic's mailbox on its own domain
+   (Proton Mail). To change it, edit `contactEmail` in `assets/js/site-config.js` and the same address in `index.html` and `404.html`.
    — `CONTENT-REVIEW.md` item 1 lists each occurrence. It is the only contact channel on the site.
 2. **Confirm or delete "AI-assisted design where it earns its place"** (Capabilities 02). The evidence for it is
    moderate; the sentence still reads correctly without the clause.
